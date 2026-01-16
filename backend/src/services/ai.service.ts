@@ -17,10 +17,13 @@ export const enhancePrompt = async (userPrompt: string): Promise<string> => {
       {
         contents: [{
           parts: [{
-            text: `You are an expert AI prompt engineer for advertising. 
-                   Rewrite the following request into a single, highly detailed prompt for FLUX image generation.
-                   Focus on: photographic quality, commercial lighting, and specific textures.
-                   IMPORTANT: Return ONLY the enhanced prompt text. Do not include any intro, outro, or explanations.
+            text: `You are an expert AI prompt engineer for advertising. Rewrite the following request into a single, 
+                    highly detailed prompt for FLUX image generation.
+                    Create a highly detailed advertising-style image that looks like a professional commercial photo shoot. 
+                    Use cinematic lighting, sharp focus, and premium product photography composition. 
+                    Emphasize brand appeal, visual storytelling, and emotional impact. 
+                    Include studio-quality lighting, realistic reflections, depth of field, and rich textures. 
+                    The scene should be styled like a modern digital advertisement, ready for social media or billboard use.
                    
                    User request: ${userPrompt}`
           }]
