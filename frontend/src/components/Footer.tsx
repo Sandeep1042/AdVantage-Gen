@@ -5,27 +5,27 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center mb-4">
-              <div className="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
-                <i className="fas fa-bolt text-white"></i>
+              <div className="w-12  rounded-lg flex items-center justify-center">
+                <a href="#top">
+                <img src="/avg2.png" alt="Logo" className="h-8 w-20 object-contain" />
+                </a>
               </div>
-              <span className="ml-2 text-white font-bold">AdVantage Gen</span>
+              <span className="ml-2 text-white font-bold"><a href="#top">AdVantage Gen</a></span>
             </div>
             <p className="text-sm">AI-powered ad creation for modern marketers.</p>
           </div>
           <div>
             <h4 className="text-white font-semibold mb-4">Product</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-white">Features</a></li>
-              <li><a href="#" className="hover:text-white">Pricing</a></li>
-              <li><a href="#" className="hover:text-white">API</a></li>
-              <li><a href="#" className="hover:text-white">Integrations</a></li>
+              <li><a href="#features" className="hover:text-white">Features</a></li>
+              <li><a href="#ai-tools" className="hover:text-white">AI Tools</a></li>
+              <li><a href="#pricing" className="hover:text-white">Pricing</a></li>
             </ul>
           </div>
           <div>
             <h4 className="text-white font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm">
               <li><a href="#" className="hover:text-white">About</a></li>
-              <li><a href="#" className="hover:text-white">Blog</a></li>
               <li><a href="#" className="hover:text-white">Careers</a></li>
               <li><a href="#" className="hover:text-white">Contact</a></li>
             </ul>
@@ -35,7 +35,6 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li><a href="#" className="hover:text-white">Privacy</a></li>
               <li><a href="#" className="hover:text-white">Terms</a></li>
-              <li><a href="#" className="hover:text-white">Security</a></li>
             </ul>
           </div>
         </div>

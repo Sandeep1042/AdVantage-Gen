@@ -4,7 +4,7 @@ export default function Pricing() {
   const plans = [
     {
       name: "Starter",
-      price: "$29",
+      price: "$0",
       period: "/month",
       features: [
         "50 ad generations/month",
@@ -54,11 +54,11 @@ export default function Pricing() {
   ];
 
   return (
-    <section id="pricing" className="py-20 bg-white">
+    <section id="pricing" className="py-20 gradient-bg-gray">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-xl text-gray-600">Choose the perfect plan for your business</p>
+          <h2 className="text-4xl font-bold text-white mb-4">Simple, Transparent Pricing</h2>
+          <p className="text-xl text-gray-400">Choose the perfect plan for your business</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
