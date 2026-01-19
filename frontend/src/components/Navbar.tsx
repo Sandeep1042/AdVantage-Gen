@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 interface NavbarProps {
@@ -10,19 +10,23 @@ export default function Navbar({ isAuthenticated = false }: NavbarProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-white shadow-sm fixed w-full top-0 z-50">
+    <nav className="shadow-sm w-full top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <Link to="/" className="flex items-center cursor-pointer">
-            <div className="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
-              <i className="fas fa-bolt text-white text-xl"></i>
+            {/* Left: Logo */}
+            <div className="flex items-center space-x-2 group">
+              <img src="/avg2.png" alt="Logo" className="h-8 w-20 object-contain"/>
+              <span className="text-2xl font-bold tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300">AdVantage Gen</span>
             </div>
-            <span className="ml-3 text-xl font-bold gradient-text">AdVantage Gen</span>
           </Link>
 
           {!isAuthenticated && (
             <>
               <div className="hidden md:flex space-x-8">
+                <a href="#features" className="nav-link text-gray-700 hover:text-blue-600 font-medium">
+                  AI Tools
+                </a>
                 <a href="#features" className="nav-link text-gray-700 hover:text-blue-600 font-medium">
                   Features
                 </a>
