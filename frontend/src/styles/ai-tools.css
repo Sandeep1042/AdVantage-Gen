@@ -2,7 +2,7 @@
 section.design {
     background-color: #0a1920;
     background-image:
-        radial-gradient(ellipse 120% 100% at 50% -10%, #00a8e0a6, #4775ff00),
+        radial-gradient(ellipse 120% 100% at 50% -10%, #234ed0a6, #4775ff00),
         radial-gradient(ellipse 50% 100% at 50% -30%, #ffffff70, #ffffff00);
     background-repeat: no-repeat;
     background-size: 100vw 2000px;
@@ -109,7 +109,7 @@ section.design {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
+    border-radius: 100px;
     padding: 12px 20px;
     font-size: 0.9rem;
     display: flex;
@@ -118,11 +118,41 @@ section.design {
     z-index: 10;
 }
 
+.ex-prompt-ad {
+    position: absolute;
+    bottom: -100px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 100px;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10;
+}
+
+.ex-prompt-ad a {
+    background: #f1ad1e;
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 100px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.ex-prompt-ad a:hover {
+    background: #e19b08;
+    box-shadow: 0 0 10px rgba(241, 173, 30, 0.5);
+}
+
 .ex-prompt a {
     background: #f1ad1e;
     color: #fff;
     padding: 6px 16px;
-    border-radius: 4px;
+    border-radius: 100px;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
@@ -135,12 +165,15 @@ section.design {
 
 section.design .button {
     background-color: #e19b08;
+    border-radius: 100px;
     color: #fff;
     font-size: 1rem;
     font-weight: 400;
     height: 44px;
     margin-top: 20px;
-    padding: 0 40px;
+    padding: 10px 40px;
+    align-items: center;
+    
 }
 
 section.design .button:hover {

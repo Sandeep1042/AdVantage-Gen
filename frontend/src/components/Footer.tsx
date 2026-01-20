@@ -26,7 +26,6 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm">
               <li><a href="#" className="hover:text-white">About</a></li>
-              <li><a href="#" className="hover:text-white">Careers</a></li>
               <li><a href="#" className="hover:text-white">Contact</a></li>
             </ul>
           </div>
@@ -39,7 +38,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-          <p>&copy; 2024 AdVantage Gen. All rights reserved.</p>
+          <p>&copy; 2026 AdVantage Gen. All rights reserved.</p>
         </div>
       </div>
     </footer>

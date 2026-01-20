@@ -19,12 +19,16 @@ export default function AiTools(){
                     <p>
                         It generates creative advertisements tailored to your needs with just a basic prompt. Whether you're looking for social media ads, banner ads, or promotional content, our AI tool crafts compelling ads that capture attention and drive engagement.
                     </p>
-                    <a href="#" className="button med rounded" title="Creative Ad Generator">Open Creative Ad Generator</a>
+                    <a href="#" className="button med ai-tools-btn" title="Creative Ad Generator">Open Creative Ad Generator</a>
                 </div>
                 <div className="right">
                     <div className="box-out">
                         <div id="creative-ad-generator" className="box-content">
-                            <img src="https://pixlr.com/images/index/creative-ad-generator.webp" loading="lazy" alt="Creative Ad Generator" />
+                            <img src="shoes ad.png" loading="lazy" alt="Creative Ad Generator" />
+                            <div className="ex-prompt-ad">
+                                generate a profesional ad of marathon running shoes for instagram (Comic Book)
+                                <a href="#" title="Create Logo">Create</a>
+                            </div>
                         </div>
                         <div className="box-glow"></div>
                     </div>
@@ -43,8 +47,8 @@ export default function AiTools(){
                 <div className="right">
                     <div className="box-out">
                         <div id="logo-creator" className="box-content">
-                            <img src="https://pixlr.com/images/index/product-image-one.webp" loading="lazy" alt="Logo creator Exampleone" />
-                            <img src="https://pixlr.com/images/index/product-image-two.webp" loading="lazy" alt="Logo creator Example two" />
+                            <img src="Tech_StacX_2.png" loading="lazy" alt="Logo creator Exampleone" />
+                            <img src="Tech_StacX_1.png" loading="lazy" alt="Logo creator Example two" />
                             <div className="ex-prompt">
                                 Logo for a modern tech startup
                                 <a href="#" title="Create Logo">Create</a>
