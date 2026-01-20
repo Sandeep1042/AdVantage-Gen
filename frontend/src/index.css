@@ -67,8 +67,31 @@ body {
     color: #ffffff;
   }
 
+  .gradient-bg-blue-2 {
+    background-color: #0a1920;
+    background-image:
+        radial-gradient(ellipse 120% 100% at 50% -10%, #0d32a1a6, #4775ff00),
+        radial-gradient(ellipse 50% 100% at 50% -30%, #ffffff70, #ffffff00);
+    background-repeat: no-repeat;
+    background-size: 100vw 2000px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 250px;
+  }
 
-  .gradient-bg-nav {
+  .gradient-bg-blue-3 {
+    background-color: #0a1920;
+    background-image:
+        radial-gradient(ellipse 120% 100% at 50% -10%, #0d32a1a6, #4775ff00),
+        radial-gradient(ellipse 50% 100% at 50% -30%, #ffffff70, #ffffff00);
+    background-repeat: no-repeat;
+    background-size: 100vw 2000px;
+    color: #fff;
+    display: flex;
+  }
+
+  .gradient-bg-nav-home {
     margin: 0;
     font-family: 'Inter', sans-serif;
     background: radial-gradient(
@@ -80,6 +103,18 @@ body {
     color: #ffffff;
   }
   
+  .gradient-bg-nav-else {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(
+        circle at bottom ,
+        #2b356d 0%,
+        #0b1225 85%,
+        #070b18 100%
+    );
+    color: #ffffff;
+  }
+
   .gradient-bg {
   background: linear-gradient(45deg, #082975 0%, #007BFF 60%, #00C0A1 100%);
   }
@@ -102,8 +137,9 @@ body {
   }
   
   .btn-primary {
-    background: linear-gradient(135deg, #0066FF 0%, #0052CC 100%);
+    background: linear-gradient(135deg, #3299ff 0%, #0052CC 100%);
     transition: all 0.3s ease;
+    border-radius: 100px;
   }
   
   .btn-primary:hover {
@@ -148,7 +184,19 @@ body {
     position: relative;
   }
 
-  
+  .add-logo-btn {
+    top: 18px;
+    right: 18px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+  }
+
 
 }
 

@@ -12,7 +12,7 @@ export default function HistoryPage() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen gradient-bg-blue-3">
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">
