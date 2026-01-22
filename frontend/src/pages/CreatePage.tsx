@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import {
   Ban, Sun, Contrast, Lightbulb, Moon, Sunrise, Lamp, SunMedium, MoonStar, CircleDot, Sunset,
-  Palette, Layout, Image as ImageIcon, Check, MousePointer2, Box, Sparkles, Wand2
+  Palette, Layout, Image as ImageIcon, Check, MousePointer2, Box, Sparkles, Wand2,
+  Instagram, Facebook, Linkedin, Twitter, Music2, Layers, Zap, Hexagon, Droplets, Snowflake, Flame, Mountain,
+  RectangleHorizontal, RectangleVertical, Monitor, Smartphone, Tv, Square,
 } from "lucide-react";
 
 
@@ -45,29 +47,33 @@ const styleOptions: Option[] = [
 
 const colorOptions: Option[] = [
   { label: "No Tone", value: "none", Icon: Ban },
-  { label: "Vibrant", value: "vibrant" },
-  { label: "Pastel", value: "pastel" },
-  { label: "Monochrome", value: "monochrome" },
-  { label: "Neon", value: "neon" },
-  { label: "Earth Tones", value: "earth-tones" },
-  { label: "Cool", value: "cool" },
-  { label: "Warm", value: "warm" },
+  { label: "Vibrant", value: "vibrant", Icon: Zap },
+  { label: "Pastel", value: "pastel", Icon: Hexagon },
+  { label: "Monochrome", value: "monochrome", Icon: Layers },
+  { label: "Neon", value: "neon", Icon: Lightbulb },
+  { label: "Earth Tones", value: "earth-tones", Icon: Mountain },
+  { label: "Cool", value: "cool", Icon: Snowflake },
+  { label: "Warm", value: "warm", Icon: Flame },
 ];
 
-const compositionOptions: Option[] = [
-  { label: "No Composition", value: "none", Icon: Ban },
-  { label: "Symmetrical", value: "symmetrical" },
-  { label: "Rule of Thirds", value: "rule-of-thirds" },
-  { label: "Wide Angle", value: "wide-angle" },
-  { label: "Macro", value: "macro" },
-  { label: "Isometric", value: "isometric" },
-  { label: "Top Down", value: "top-down" },
+const platformOptions: Option[] = [
+  { label: "All Platform", value: "All", Icon: Layout },
+  { label: "Instagram", value: "Instagram", Icon: Instagram },
+  { label: "X (Twitter)", value: "X (Twitter)", Icon: Twitter },
+  { label: "Facebook", value: "Facebook", Icon: Facebook },
+  { label: "LinkedIn", value: "LinkedIn", Icon: Linkedin },
+  { label: "TikTok", value: "TikTok", Icon: Music2 },
 ];
 
 const aspectRatios = [
-  { label: "1:1", value: "square" },
-  { label: "16:9", value: "horizontal" },
-  { label: "9:16", value: "vertical" },
+  { label: "1:1", value: "square", Icon: Square },
+  { label: "16:9", value: "horizontal", Icon: RectangleHorizontal },
+  { label: "9:16", value: "vertical", Icon: RectangleVertical },
+  { label: "4:3", value: "standard", Icon: Tv },
+  { label: "3:4", value: "portrait", Icon: Smartphone },
+  { label: "2:3", value: "classic-portrait", Icon: RectangleVertical },
+  { label: "3:2", value: "classic-landscape", Icon: RectangleHorizontal },
+  { label: "21:9", value: "ultrawide", Icon: Monitor },
 ];
 
 // --- Helper Component: Dropdown ---
@@ -77,13 +83,15 @@ interface DropdownProps {
   options: Option[];
   selectedValue: string;
   onSelect: (value: string) => void;
+  triggerOnHover?: boolean;
 }
 
-const Dropdown = ({ trigger, options, selectedValue, onSelect }: DropdownProps) => {
+const Dropdown = ({ trigger, options, selectedValue, onSelect, triggerOnHover = false }: DropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const selectedOption = options.find(o => o.value === selectedValue);
 
@@ -103,10 +111,26 @@ const Dropdown = ({ trigger, options, selectedValue, onSelect }: DropdownProps) 
   }
 
   const toggle = () => {
-    if (!isOpen) {
-      updatePosition();
+    if (!triggerOnHover) {
+      if (!isOpen) updatePosition();
+      setIsOpen(!isOpen);
     }
-    setIsOpen(!isOpen);
+  };
+
+  const handleMouseEnter = () => {
+    if (triggerOnHover) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      updatePosition();
+      setIsOpen(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (triggerOnHover) {
+      timeoutRef.current = setTimeout(() => {
+        setIsOpen(false);
+      }, 300); // delay to allow moving to dropdown
+    }
   };
 
   useEffect(() => {
@@ -143,15 +167,22 @@ const Dropdown = ({ trigger, options, selectedValue, onSelect }: DropdownProps) 
   }, [isOpen]);
 
   return (
-    <div className="relative inline-block" ref={triggerRef}>
+    <div
+      className="relative inline-block"
+      ref={triggerRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div onClick={toggle} className="cursor-pointer">
         {trigger(selectedOption, isOpen)}
       </div>
       {isOpen && createPortal(
         <div
           ref={dropdownRef}
-          className="fixed z-[9999] bg-[#1a1f3c]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 min-w-[220px] animate-in fade-in zoom-in-95 duration-200"
+          className="fixed z-[9999] bg-[#1a1f3c]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-200"
           style={{ top: coords.top, left: coords.left }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
           <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
             {options.map((option) => (
@@ -196,6 +227,8 @@ export default function CreatePage() {
   const [style, setStyle] = useState("none");
   const [color, setColor] = useState("none");
   const [composition, setComposition] = useState("none");
+  const [productName, setProductName] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
 
   // Mode Slider State
   const [activeMode, setActiveMode] = useState("Ad Generator AI");
@@ -321,7 +354,7 @@ export default function CreatePage() {
                 {/* Ad Description */}
                 <div className="w-full mx-auto">
                   {/* Input Area */}
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl relative overflow-hidden group">
+                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4  shadow-xl relative overflow-hidden group">
                     {/* Glossy Effect */}
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50"></div>
 
@@ -348,167 +381,164 @@ export default function CreatePage() {
                       />
                     </div>
 
-                    <div className="relative">
+                    <div className="relative pb-16 bg-black/20 border border-white/10 rounded-xl resize-none">
                       <textarea
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
-                        rows={4}
-                        className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-500 transition-all font-light pr-12"
+                        rows={6}
+                        className="w-full px-4 pt-4 bg-transparent rounded-xl resize-none text-white placeholder-gray-500 font-light focus:outline-none focus:border-transparent active:outline-none"
                         placeholder="Example: Eco-friendly reusable coffee cup made from bamboo, perfect for morning commuters. Highlight sustainability and modern design."
                         required
                       />
+
+
+                      {/* Tool Bar */}
+                      <div className="absolute bottom-3 left-4 right-16 flex flex-wrap gap-1.5 items-center z-10 pointer-events-none">
+                        <div className="pointer-events-auto flex flex-wrap gap-1.5">
+                          {/* Aspect Ratio Dropdown */}
+                          <Dropdown
+                            options={aspectRatios}
+                            selectedValue={ratio}
+                            onSelect={setRatio}
+                            trigger={(selected, isOpen) => renderBadgeButton(
+                              selected ? selected.label : "Aspect Ratio",
+                              isOpen || (selected ? true : false),
+                              selected?.Icon && <selected.Icon size={14} />
+                            )}
+                          />
+
+                          <div className="w-px h-5 bg-white/10 mx-0.5 self-center"></div>
+
+                          {/* Style Dropdown */}
+                          <Dropdown
+                            options={styleOptions}
+                            selectedValue={style}
+                            onSelect={setStyle}
+                            trigger={(selected, isOpen) => renderBadgeButton(
+                              selected && selected.value !== 'none' ? selected.label : "No Style",
+                              isOpen || (selected ? selected.value !== 'none' : false),
+                              selected?.Icon && <selected.Icon size={14} />
+                            )}
+                          />
+
+                          {/* Lighting Dropdown */}
+                          <Dropdown
+                            options={lightingOptions}
+                            selectedValue={lighting}
+                            onSelect={setLighting}
+                            trigger={(selected, isOpen) => renderBadgeButton(
+                              selected && selected.value !== 'none' ? selected.label : "Lighting",
+                              isOpen || (selected ? selected.value !== 'none' : false),
+                              selected?.Icon && <selected.Icon size={14} />
+                            )}
+                          />
+
+                          {/* Color Dropdown */}
+                          <Dropdown
+                            options={colorOptions}
+                            selectedValue={color}
+                            onSelect={setColor}
+                            trigger={(selected, isOpen) => renderBadgeButton(
+                              selected && selected.value !== 'none' ? selected.label : "Tone",
+                              isOpen || (selected ? selected.value !== 'none' : false),
+                              selected?.Icon && <selected.Icon size={14} />
+                            )}
+                          />
+
+                          {/* Platform Dropdown */}
+                          <Dropdown
+                            options={platformOptions}
+                            selectedValue={platform}
+                            onSelect={setPlatform}
+                            trigger={(selected, isOpen) => renderBadgeButton(
+                              selected && selected.value !== 'none' ? selected.label : "Platform",
+                              isOpen || (selected ? selected.value !== 'All' : false),
+                              selected?.Icon && <selected.Icon size={14} />
+                            )}
+                          />
+                        </div>
+                      </div>
+
                       <button
                         type="button"
-                        className="absolute bottom-3 right-3 p-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-lg transition-colors group/btn"
+                        className="absolute bottom-4 right-4 p-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-lg transition-colors group/btn z-10"
                         title="Enhance Prompt"
                       >
                         <Wand2 size={16} className="group-hover/btn:animate-pulse" />
                       </button>
                     </div>
 
-                    {/* Tags / Pills */}
-                    <div className="flex flex-wrap gap-2 mt-4">
-
-                      {/* Aspect Ratio */}
-                      <div className="flex items-center bg-black/20 rounded-full p-1 pr-3 border border-white/5">
-                        {aspectRatios.map(ar => (
-                          <button
-                            key={ar.value}
-                            type="button"
-                            onClick={() => setRatio(ar.value)}
-                            className={`px-3 py-1 rounded-full text-xs transition-all ${ratio === ar.value ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}
-                          >
-                            {ar.label}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="w-px h-6 bg-white/10 mx-1 self-center"></div>
-
-                      {/* Style Dropdown */}
-                      <Dropdown
-                        options={styleOptions}
-                        selectedValue={style}
-                        onSelect={setStyle}
-                        trigger={(selected, isOpen) => renderBadgeButton(
-                          selected && selected.value !== 'none' ? selected.label : "No Style",
-                          isOpen || (selected ? selected.value !== 'none' : false),
-                          <Sparkles size={14} />
-                        )}
-                      />
-
-                      {/* Lighting Dropdown */}
-                      <Dropdown
-                        options={lightingOptions}
-                        selectedValue={lighting}
-                        onSelect={setLighting}
-                        trigger={(selected, isOpen) => renderBadgeButton(
-                          selected && selected.value !== 'none' ? selected.label : "No Lighting",
-                          isOpen || (selected ? selected.value !== 'none' : false),
-                          <Lightbulb size={14} />
-                        )}
-                      />
-
-                      {/* Color Dropdown */}
-                      <Dropdown
-                        options={colorOptions}
-                        selectedValue={color}
-                        onSelect={setColor}
-                        trigger={(selected, isOpen) => renderBadgeButton(
-                          selected && selected.value !== 'none' ? selected.label : "No Tone",
-                          isOpen || (selected ? selected.value !== 'none' : false),
-                          <Palette size={14} />
-                        )}
-                      />
-
-                      {/* Composition Dropdown */}
-                      <Dropdown
-                        options={compositionOptions}
-                        selectedValue={composition}
-                        onSelect={setComposition}
-                        trigger={(selected, isOpen) => renderBadgeButton(
-                          selected && selected.value !== 'none' ? selected.label : "All Platforms",
-                          isOpen || (selected ? selected.value !== 'none' : false),
-                          <Layout size={14} />
-                        )}
-                      />
-
-                    </div>
-
                   </div>
                 </div>
 
-                {/* Campaign Options & Brand Elements Grid */}
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="relative overflow-hidden group">
+                      <div className="grid md:grid-cols-1 gap-8">
+                        {/* Brand Identity */}
+                        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent opacity-50"></div>
 
-                  {/* Campaign Options */}
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl">
-                    <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-                      <i className="fas fa-sliders-h mr-3 text-purple-400"></i>
-                      Campaign Details
-                    </h2>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Tone of Voice</label>
-                        <select value={tone} onChange={(e) => setTone(e.target.value)} className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                          <option value="No tone">No specific tone</option>
-                          <option value="professional">Professional</option>
-                          <option value="witty">Witty & Fun</option>
-                          <option value="urgent">Urgent</option>
-                          <option value="inspirational">Inspirational</option>
-                          <option value="casual">Casual</option>
-                        </select>
-                      </div>
+                          <h2 className="text-xl font-bold text-white mb-6 flex items-center">
+                            <i className="fas fa-sliders-h mr-3 text-yellow-400"></i>
+                            Brand Details
+                          </h2>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Target Platform</label>
-                        <select value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                          <option value="Any platform">All Platforms</option>
-                          <option value="instagram">Instagram</option>
-                          <option value="facebook">Facebook</option>
-                          <option value="linkedin">LinkedIn</option>
-                          <option value="twitter">X (Twitter)</option>
-                          <option value="tiktok">TikTok</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Product / Brand Name</label>
+                                <input
+                                  type="text"
+                                  value={productName}
+                                  onChange={(e) => setProductName(e.target.value)}
+                                  className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 placeholder-gray-600 text-sm transition-all"
+                                  placeholder="e.g. EcoCup"
+                                />
+                              </div>
 
-                  {/* Brand Elements */}
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl">
-                    <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-                      <i className="fas fa-award mr-3 text-yellow-400"></i>
-                      Brand Identity
-                    </h2>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Call-to-Action</label>
-                        <input
-                          type="text"
-                          value={ctaText}
-                          onChange={(e) => setCtaText(e.target.value)}
-                          className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 text-sm"
-                          placeholder="e.g. Shop Now"
-                        />
-                      </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Target Audience</label>
+                                <input
+                                  type="text"
+                                  value={targetAudience}
+                                  onChange={(e) => setTargetAudience(e.target.value)}
+                                  className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 placeholder-gray-600 text-sm transition-all"
+                                  placeholder="e.g. Young professionals, Coffee lovers"
+                                />
+                              </div>
+                            </div>
 
-                      <div className="">
-                        <div className="flex justify-between text-sm text-gray-400 mb-2">
-                          <span>Logo Opacity</span>
-                          <span className="text-white">{opacity}%</span>
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Call-to-Action</label>
+                                <input
+                                  type="text"
+                                  value={ctaText}
+                                  onChange={(e) => setCtaText(e.target.value)}
+                                  className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 placeholder-gray-600 text-sm transition-all"
+                                  placeholder="e.g. Shop Now"
+                                />
+                              </div>
+
+                              <div>
+                                <div className="flex justify-between text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
+                                  <span>Logo Opacity</span>
+                                  <span className="text-yellow-400">{opacity}%</span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="100"
+                                  value={opacity}
+                                  onChange={(e) => setOpacity(parseInt(e.target.value))}
+                                  className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-yellow-400"
+                                />
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={opacity}
-                          onChange={(e) => setOpacity(parseInt(e.target.value))}
-                          className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                        />
                       </div>
                     </div>
-                  </div>
-                </div>
+
 
 
                 <div className="flex items-center justify-between pt-4 pb-8">
