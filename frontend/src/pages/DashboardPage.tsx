@@ -53,10 +53,10 @@ export default function DashboardPage() {
             {stats.map((stat, index) => (
               <div key={index} className="bg-white/20 p-6 rounded-xl shadow-sm">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-white text-sm font-medium">{stat.label}</span>
+                  <span className="text-gray-100 text-sm font-medium">{stat.label}</span>
                   <i className={`fas ${stat.icon} text-${stat.color}-500`}></i>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-3xl font-bold text-white">{stat.value}</p>
                 <p className={`text-sm mt-2 ${stat.change ? 'text-green-400' : 'text-gray-400'}`}>
                   {stat.change ? <><i className="fas fa-arrow-up"></i> {stat.change} this month</> : stat.subtext}
                 </p>
@@ -67,7 +67,7 @@ export default function DashboardPage() {
           {/* Recent Campaigns */}
           <div className="bg-white/20 rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Recent Campaigns</h2>
+              <h2 className="text-xl font-bold text-white-">Recent Campaigns</h2>
               <Link to="/history" className="text-blue-600 hover:text-blue-700 font-medium">
                 View All
               </Link>
