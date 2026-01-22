@@ -15,7 +15,9 @@ export default function Pricing() {
       ],
       buttonText: "Get Started",
       buttonClass: "bg-gray-200 text-gray-900 hover:bg-gray-300",
-      borderClass: "border-2 border-gray-200 hover:border-blue-500"
+      borderClass: "border-2 border-gray-200 hover:border-blue-500",
+      bgClass: "bg-gradient-to-br from-white/20 to-white/40 text-white"
+      
     },
     {
       name: "Professional",
@@ -32,7 +34,7 @@ export default function Pricing() {
       ],
       buttonText: "Get Started",
       buttonClass: "bg-white text-blue-600 hover:bg-gray-100",
-      bgClass: "bg-gradient-to-br from-blue-600 to-blue-700 text-white"
+      bgClass: "bg-gradient-to-br from-blue-600/40 to-blue-700/40 text-white"
     },
     {
       name: "Enterprise",
@@ -49,7 +51,8 @@ export default function Pricing() {
       ],
       buttonText: "Contact Sales",
       buttonClass: "bg-gradient-to-r from-blue-600 to-green-500 text-white hover:from-blue-700 hover:to-green-600",
-      borderClass: "border-2 border-gray-200 hover:border-blue-500"
+      borderClass: "border-2 border-gray-200 hover:border-blue-500",
+      bgClass: "bg-gradient-to-br from-white/20 to-white/40 text-white"
     }
   ];
 

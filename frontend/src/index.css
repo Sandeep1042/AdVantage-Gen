@@ -119,6 +119,13 @@ body {
   background: linear-gradient(45deg, #082975 0%, #007BFF 60%, #00C0A1 100%);
   }
 
+  .gradient-bg-blur {
+  background: linear-gradient(45deg, #082975e3 0%, #007bffdb 60%, #00c0a0ce 100%);
+  }
+
+  .gradient-bg-feature {
+  background: linear-gradient(90deg, #082975 0%, #007BFF 60%, #00C0A1 100%);
+  }
   
   .gradient-text {
     background: linear-gradient(135deg, #0066FF 0%, #00D084 100%);
