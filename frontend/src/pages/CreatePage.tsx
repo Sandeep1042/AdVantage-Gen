@@ -19,6 +19,7 @@ type Option = {
   label: string;
   value: string;
   Icon?: React.ElementType;
+  isPremium?: boolean;
 };
 
 const lightingOptions: Option[] = [
@@ -54,6 +55,16 @@ const colorOptions: Option[] = [
   { label: "Earth Tones", value: "earth-tones", Icon: Mountain },
   { label: "Cool", value: "cool", Icon: Snowflake },
   { label: "Warm", value: "warm", Icon: Flame },
+];
+
+const modelOptions: Option[] = [
+  { label: "FLUX.1 Schnell", value: "black-forest-labs/FLUX.1-schnell", Icon: Zap },
+  { label: "SDXL Base 1.0", value: "stabilityai/stable-diffusion-xl-base-1.0", Icon: ImageIcon },
+  { label: "FLUX.1 Dev", value: "black-forest-labs/FLUX.1-dev", Icon: Sparkles, isPremium: true },
+  { label: "Qwen Lightning", value: "lightx2v/Qwen-Image-Lightning", Icon: Zap, isPremium: true },
+  { label: "Playground v2.5", value: "playgroundai/playground-v2.5-1024px-aesthetic", Icon: Layout, isPremium: true },
+  { label: "Z-Image Turbo", value: "Tongyi-MAI/Z-Image-Turbo", Icon: Wand2, isPremium: true },
+  { label: "SD 3 Medium", value: "stabilityai/stable-diffusion-3-medium", Icon: ImageIcon, isPremium: true },
 ];
 
 const platformOptions: Option[] = [
@@ -200,6 +211,11 @@ const Dropdown = ({ trigger, options, selectedValue, onSelect, triggerOnHover = 
                 {option.Icon && <option.Icon className="w-4 h-4 opacity-70" />}
                 {!option.Icon && <span className="w-4" />}
                 <span>{option.label}</span>
+                {option.isPremium && (
+                  <span className="ml-2 text-[10px] uppercase tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 text-black font-bold px-1.5 py-0.5 rounded-full shadow-[0_2px_10px_rgba(251,191,36,0.2)]">
+                    PRO
+                  </span>
+                )}
                 {selectedValue === option.value && <Check className="w-3 h-3 ml-auto" />}
               </button>
             ))}
@@ -227,6 +243,7 @@ export default function CreatePage() {
   const [style, setStyle] = useState("none");
   const [color, setColor] = useState("none");
   const [composition, setComposition] = useState("none");
+  const [model, setModel] = useState("none");
   const [productName, setProductName] = useState("");
   const [targetAudience, setTargetAudience] = useState("");
 
@@ -265,7 +282,19 @@ export default function CreatePage() {
           setTimeout(() => {
             setLoading(false);
             if (activeMode === "Ad Generator AI") {
-              navigate("/editor");
+              navigate("/editor", {
+                state: {
+                  prompt,
+                  tone,
+                  platform,
+                  ratio,
+                  ctaText,
+                  productName,
+                  targetAudience,
+                  opacity,
+                  model
+                }
+              });
             }
           }, 500);
           return 100;
@@ -354,7 +383,7 @@ export default function CreatePage() {
                 {/* Ad Description */}
                 <div className="w-full mx-auto">
                   {/* Input Area */}
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4  shadow-xl relative overflow-hidden group">
+                  <div className="bg-white/5 pb-16 backdrop-blur-md border border-white/10 rounded-2xl p-4  shadow-xl relative overflow-hidden group">
                     {/* Glossy Effect */}
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50"></div>
 
@@ -381,7 +410,7 @@ export default function CreatePage() {
                       />
                     </div>
 
-                    <div className="relative pb-16 bg-black/20 border border-white/10 rounded-xl resize-none">
+                    <div className="relative  bg-black/20 border border-white/10 rounded-xl resize-none">
                       <textarea
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
@@ -391,74 +420,6 @@ export default function CreatePage() {
                         required
                       />
 
-
-                      {/* Tool Bar */}
-                      <div className="absolute bottom-3 left-4 right-16 flex flex-wrap gap-1.5 items-center z-10 pointer-events-none">
-                        <div className="pointer-events-auto flex flex-wrap gap-1.5">
-                          {/* Aspect Ratio Dropdown */}
-                          <Dropdown
-                            options={aspectRatios}
-                            selectedValue={ratio}
-                            onSelect={setRatio}
-                            trigger={(selected, isOpen) => renderBadgeButton(
-                              selected ? selected.label : "Aspect Ratio",
-                              isOpen || (selected ? true : false),
-                              selected?.Icon && <selected.Icon size={14} />
-                            )}
-                          />
-
-                          <div className="w-px h-5 bg-white/10 mx-0.5 self-center"></div>
-
-                          {/* Style Dropdown */}
-                          <Dropdown
-                            options={styleOptions}
-                            selectedValue={style}
-                            onSelect={setStyle}
-                            trigger={(selected, isOpen) => renderBadgeButton(
-                              selected && selected.value !== 'none' ? selected.label : "No Style",
-                              isOpen || (selected ? selected.value !== 'none' : false),
-                              selected?.Icon && <selected.Icon size={14} />
-                            )}
-                          />
-
-                          {/* Lighting Dropdown */}
-                          <Dropdown
-                            options={lightingOptions}
-                            selectedValue={lighting}
-                            onSelect={setLighting}
-                            trigger={(selected, isOpen) => renderBadgeButton(
-                              selected && selected.value !== 'none' ? selected.label : "Lighting",
-                              isOpen || (selected ? selected.value !== 'none' : false),
-                              selected?.Icon && <selected.Icon size={14} />
-                            )}
-                          />
-
-                          {/* Color Dropdown */}
-                          <Dropdown
-                            options={colorOptions}
-                            selectedValue={color}
-                            onSelect={setColor}
-                            trigger={(selected, isOpen) => renderBadgeButton(
-                              selected && selected.value !== 'none' ? selected.label : "Tone",
-                              isOpen || (selected ? selected.value !== 'none' : false),
-                              selected?.Icon && <selected.Icon size={14} />
-                            )}
-                          />
-
-                          {/* Platform Dropdown */}
-                          <Dropdown
-                            options={platformOptions}
-                            selectedValue={platform}
-                            onSelect={setPlatform}
-                            trigger={(selected, isOpen) => renderBadgeButton(
-                              selected && selected.value !== 'none' ? selected.label : "Platform",
-                              isOpen || (selected ? selected.value !== 'All' : false),
-                              selected?.Icon && <selected.Icon size={14} />
-                            )}
-                          />
-                        </div>
-                      </div>
-
                       <button
                         type="button"
                         className="absolute bottom-4 right-4 p-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-lg transition-colors group/btn z-10"
@@ -466,78 +427,160 @@ export default function CreatePage() {
                       >
                         <Wand2 size={16} className="group-hover/btn:animate-pulse" />
                       </button>
+
+                    </div>
+                    {/* Tool Bar */}
+                    <div className="pt-24 absolute bottom-3 left-4 right-16 flex flex-wrap gap-1.5 items-center z-10 pointer-events-none">
+                      <div className="pointer-events-auto flex flex-wrap gap-1.5">
+                        {/* Aspect Ratio Dropdown */}
+                        <Dropdown
+                          options={aspectRatios}
+                          selectedValue={ratio}
+                          onSelect={setRatio}
+                          trigger={(selected, isOpen) => renderBadgeButton(
+                            selected ? selected.label : "Aspect Ratio",
+                            isOpen || (selected ? true : false),
+                            selected?.Icon && <selected.Icon size={14} />
+                          )}
+                        />
+
+                        <div className="w-px h-5 bg-white/10 mx-0.5 self-center"></div>
+
+                        {/* Style Dropdown */}
+                        <Dropdown
+                          options={styleOptions}
+                          selectedValue={style}
+                          onSelect={setStyle}
+                          trigger={(selected, isOpen) => renderBadgeButton(
+                            selected && selected.value !== 'none' ? selected.label : "No Style",
+                            isOpen || (selected ? selected.value !== 'none' : false),
+                            selected?.Icon && <selected.Icon size={14} />
+                          )}
+                        />
+
+                        {/* Lighting Dropdown */}
+                        <Dropdown
+                          options={lightingOptions}
+                          selectedValue={lighting}
+                          onSelect={setLighting}
+                          trigger={(selected, isOpen) => renderBadgeButton(
+                            selected && selected.value !== 'none' ? selected.label : "No Lighting",
+                            isOpen || (selected ? selected.value !== 'none' : false),
+                            selected?.Icon && <selected.Icon size={14} />
+                          )}
+                        />
+
+                        {/* Color Dropdown */}
+                        <Dropdown
+                          options={colorOptions}
+                          selectedValue={color}
+                          onSelect={setColor}
+                          trigger={(selected, isOpen) => renderBadgeButton(
+                            selected && selected.value !== 'none' ? selected.label : "No Tone",
+                            isOpen || (selected ? selected.value !== 'none' : false),
+                            selected?.Icon && <selected.Icon size={14} />
+                          )}
+                        />
+
+                        {/* Platform Dropdown */}
+                        <Dropdown
+                          options={platformOptions}
+                          selectedValue={platform}
+                          onSelect={setPlatform}
+                          trigger={(selected, isOpen) => renderBadgeButton(
+                            selected && selected.value !== 'none' ? selected.label : "All Platform",
+                            isOpen || (selected ? selected.value !== 'All' : false),
+                            selected?.Icon && <selected.Icon size={14} />
+                          )}
+                        />
+
+
+                      </div>
+
+                    </div>
+                    <div className="absolute bottom-1 right-4 p-2 text-blue-400 rounded-lg transition-colors group/btn z-10">
+                      <Dropdown
+                        options={modelOptions}
+                        selectedValue={model}
+                        onSelect={setModel}
+                        trigger={(selected, isOpen) => renderBadgeButton(
+                          selected && selected.value !== 'none' ? selected.label : "Model: Select AI",
+                          isOpen || (selected ? selected.value !== 'none' : false),
+                          selected?.Icon && <selected.Icon size={14} />
+                        )}
+                      />
                     </div>
 
                   </div>
                 </div>
 
                 <div className="relative overflow-hidden group">
-                      <div className="grid md:grid-cols-1 gap-8">
-                        {/* Brand Identity */}
-                        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent opacity-50"></div>
+                  <div className="grid md:grid-cols-1 gap-8">
+                    {/* Brand Identity */}
+                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent opacity-50"></div>
 
-                          <h2 className="text-xl font-bold text-white mb-6 flex items-center">
-                            <i className="fas fa-sliders-h mr-3 text-yellow-400"></i>
-                            Brand Details
-                          </h2>
+                      <h2 className="text-xl font-bold text-white mb-6 flex items-center">
+                        <i className="fas fa-sliders-h mr-3 text-yellow-400"></i>
+                        Brand Details
+                      </h2>
 
-                          <div className="grid md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                              <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Product / Brand Name</label>
-                                <input
-                                  type="text"
-                                  value={productName}
-                                  onChange={(e) => setProductName(e.target.value)}
-                                  className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 placeholder-gray-600 text-sm transition-all"
-                                  placeholder="e.g. EcoCup"
-                                />
-                              </div>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Product / Brand Name</label>
+                            <input
+                              type="text"
+                              value={productName}
+                              onChange={(e) => setProductName(e.target.value)}
+                              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 placeholder-gray-600 text-sm transition-all"
+                              placeholder="e.g. EcoCup"
+                            />
+                          </div>
 
-                              <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Target Audience</label>
-                                <input
-                                  type="text"
-                                  value={targetAudience}
-                                  onChange={(e) => setTargetAudience(e.target.value)}
-                                  className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 placeholder-gray-600 text-sm transition-all"
-                                  placeholder="e.g. Young professionals, Coffee lovers"
-                                />
-                              </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Target Audience</label>
+                            <input
+                              type="text"
+                              value={targetAudience}
+                              onChange={(e) => setTargetAudience(e.target.value)}
+                              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 placeholder-gray-600 text-sm transition-all"
+                              placeholder="e.g. Young professionals, Coffee lovers"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Call-to-Action</label>
+                            <input
+                              type="text"
+                              value={ctaText}
+                              onChange={(e) => setCtaText(e.target.value)}
+                              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 placeholder-gray-600 text-sm transition-all"
+                              placeholder="e.g. Shop Now"
+                            />
+                          </div>
+
+                          <div>
+                            <div className="flex justify-between text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
+                              <span>Logo Opacity</span>
+                              <span className="text-yellow-400">{opacity}%</span>
                             </div>
-
-                            <div className="space-y-4">
-                              <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Call-to-Action</label>
-                                <input
-                                  type="text"
-                                  value={ctaText}
-                                  onChange={(e) => setCtaText(e.target.value)}
-                                  className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 placeholder-gray-600 text-sm transition-all"
-                                  placeholder="e.g. Shop Now"
-                                />
-                              </div>
-
-                              <div>
-                                <div className="flex justify-between text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
-                                  <span>Logo Opacity</span>
-                                  <span className="text-yellow-400">{opacity}%</span>
-                                </div>
-                                <input
-                                  type="range"
-                                  min="0"
-                                  max="100"
-                                  value={opacity}
-                                  onChange={(e) => setOpacity(parseInt(e.target.value))}
-                                  className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-yellow-400"
-                                />
-                              </div>
-                            </div>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={opacity}
+                              onChange={(e) => setOpacity(parseInt(e.target.value))}
+                              className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-yellow-400"
+                            />
                           </div>
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
 
 
 
