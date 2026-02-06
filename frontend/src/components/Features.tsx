@@ -45,7 +45,7 @@ export default function Features() {
   ];
 
   return (
-    <section id="features" className="py-20 gradient-bg-features">
+    <section id="features" className=" py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">Powerful Features for Modern Marketers</h2>
@@ -56,7 +56,7 @@ export default function Features() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`card-hover bg-gradient-to-br ${feature.gradient} p-8 rounded-2xl border border-opacity-20`}
+              className={`card-hover bg-gradient-to-br backdrop-blur-sm ${feature.gradient} p-8 rounded-2xl border border-opacity-20`}
             >
               <div className={`w-14 h-14 ${feature.iconGradient} rounded-xl flex items-center justify-center mb-6`}>
                 <i className={`${feature.icon} text-white text-2xl`}></i>

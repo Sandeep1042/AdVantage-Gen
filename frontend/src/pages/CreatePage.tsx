@@ -1,16 +1,272 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import {
+  Ban, Sun, Contrast, Lightbulb, Moon, Sunrise, Lamp, SunMedium, MoonStar, CircleDot, Sunset,
+  Palette, Layout, Image as ImageIcon, Check, MousePointer2, Box, Sparkles, Wand2,
+  Instagram, Facebook, Linkedin, Twitter, Music2, Layers, Zap, Hexagon, Droplets, Snowflake, Flame, Mountain,
+  RectangleHorizontal, RectangleVertical, Monitor, Smartphone, Tv, Square,
+} from "lucide-react";
+
+
+
 import { useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
+
 import Sidebar from "../components/Sidebar";
+
+// --- Types & Constants ---
+
+type Option = {
+  label: string;
+  value: string;
+  Icon?: React.ElementType;
+  isPremium?: boolean;
+};
+
+const lightingOptions: Option[] = [
+  { label: "None", value: "none", Icon: Ban },
+  { label: "Backlight", value: "backlight", Icon: Sun },
+  { label: "Dramatic", value: "dramatic", Icon: Contrast },
+  { label: "Volumetric", value: "volumetric", Icon: Lightbulb },
+  { label: "Dimly Lit", value: "dimly-lit", Icon: Moon },
+  { label: "Crepuscular", value: "crepuscular", Icon: Sunrise },
+  { label: "Studio", value: "studio", Icon: Lamp },
+  { label: "Sunlight", value: "sunlight", Icon: SunMedium },
+  { label: "Low Light", value: "low-light", Icon: MoonStar },
+  { label: "Rim Lighting", value: "rim", Icon: CircleDot },
+  { label: "Golden Hour", value: "golden-hour", Icon: Sunset },
+];
+
+const styleOptions: Option[] = [
+  { label: "No Style", value: "none", Icon: Ban },
+  { label: "Minimalist", value: "minimalist", Icon: Sparkles },
+  { label: "Realistic", value: "realistic", Icon: ImageIcon },
+  { label: "Cyberpunk", value: "cyberpunk", Icon: Box },
+  { label: "Abstract", value: "abstract", Icon: MousePointer2 },
+  { label: "Gouache", value: "gouache", Icon: Palette },
+  { label: "Pixel Art", value: "pixel-art", Icon: Layout },
+];
+
+const colorOptions: Option[] = [
+  { label: "No Tone", value: "none", Icon: Ban },
+  { label: "Vibrant", value: "vibrant", Icon: Zap },
+  { label: "Pastel", value: "pastel", Icon: Hexagon },
+  { label: "Monochrome", value: "monochrome", Icon: Layers },
+  { label: "Neon", value: "neon", Icon: Lightbulb },
+  { label: "Earth Tones", value: "earth-tones", Icon: Mountain },
+  { label: "Cool", value: "cool", Icon: Snowflake },
+  { label: "Warm", value: "warm", Icon: Flame },
+];
+
+const modelOptions: Option[] = [
+  { label: "FLUX.1 Schnell", value: "black-forest-labs/FLUX.1-schnell", Icon: Zap },
+  { label: "SDXL Base 1.0", value: "stabilityai/stable-diffusion-xl-base-1.0", Icon: ImageIcon },
+  { label: "FLUX.1 Dev", value: "black-forest-labs/FLUX.1-dev", Icon: Sparkles, isPremium: true },
+  { label: "Qwen Lightning", value: "lightx2v/Qwen-Image-Lightning", Icon: Zap, isPremium: true },
+  { label: "Playground v2.5", value: "playgroundai/playground-v2.5-1024px-aesthetic", Icon: Layout, isPremium: true },
+  { label: "Z-Image Turbo", value: "Tongyi-MAI/Z-Image-Turbo", Icon: Wand2, isPremium: true },
+  { label: "SD 3 Medium", value: "stabilityai/stable-diffusion-3-medium", Icon: ImageIcon, isPremium: true },
+];
+
+const platformOptions: Option[] = [
+  { label: "All Platform", value: "All", Icon: Layout },
+  { label: "Instagram", value: "Instagram", Icon: Instagram },
+  { label: "X (Twitter)", value: "X (Twitter)", Icon: Twitter },
+  { label: "Facebook", value: "Facebook", Icon: Facebook },
+  { label: "LinkedIn", value: "LinkedIn", Icon: Linkedin },
+  { label: "TikTok", value: "TikTok", Icon: Music2 },
+];
+
+const aspectRatios = [
+  { label: "1:1", value: "square", Icon: Square },
+  { label: "16:9", value: "horizontal", Icon: RectangleHorizontal },
+  { label: "9:16", value: "vertical", Icon: RectangleVertical },
+  { label: "4:3", value: "standard", Icon: Tv },
+  { label: "3:4", value: "portrait", Icon: Smartphone },
+  { label: "2:3", value: "classic-portrait", Icon: RectangleVertical },
+  { label: "3:2", value: "classic-landscape", Icon: RectangleHorizontal },
+  { label: "21:9", value: "ultrawide", Icon: Monitor },
+];
+
+// --- Helper Component: Dropdown ---
+
+interface DropdownProps {
+  trigger: (selected: Option | undefined, isOpen: boolean) => React.ReactNode;
+  options: Option[];
+  selectedValue: string;
+  onSelect: (value: string) => void;
+  triggerOnHover?: boolean;
+}
+
+const Dropdown = ({ trigger, options, selectedValue, onSelect, triggerOnHover = false }: DropdownProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const selectedOption = options.find(o => o.value === selectedValue);
+
+  const updatePosition = () => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const scrollY = window.scrollY;
+      const scrollX = window.scrollX;
+
+      // Default to opening below
+      let top = rect.bottom + 8;
+      let left = rect.left;
+
+      // Simple collision detection (optional, keep simple for now)
+      setCoords({ top, left });
+    }
+  }
+
+  const toggle = () => {
+    if (!triggerOnHover) {
+      if (!isOpen) updatePosition();
+      setIsOpen(!isOpen);
+    }
+  };
+
+  const handleMouseEnter = () => {
+    if (triggerOnHover) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      updatePosition();
+      setIsOpen(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (triggerOnHover) {
+      timeoutRef.current = setTimeout(() => {
+        setIsOpen(false);
+      }, 300); // delay to allow moving to dropdown
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      // Close if clicking outside both trigger and dropdown menu
+      if (
+        isOpen &&
+        triggerRef.current &&
+        !triggerRef.current.contains(target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    // Also update position on scroll/resize
+    const handleResize = () => {
+      if (isOpen) updatePosition();
+    }
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", handleResize, true);
+      window.addEventListener("resize", handleResize);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleResize, true);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [isOpen]);
+
+  return (
+    <div
+      className="relative inline-block"
+      ref={triggerRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div onClick={toggle} className="cursor-pointer">
+        {trigger(selectedOption, isOpen)}
+      </div>
+      {isOpen && createPortal(
+        <div
+          ref={dropdownRef}
+          className="fixed z-[9999] bg-[#1a1f3c]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-200"
+          style={{ top: coords.top, left: coords.left }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelect(option.value);
+                  setIsOpen(false);
+                }}
+                className={`w-full px-4 py-2.5 text-sm text-left flex items-center gap-3 transition-colors
+                    ${selectedValue === option.value ? 'bg-blue-600/20 text-blue-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}
+                  `}
+              >
+                {option.Icon && <option.Icon className="w-4 h-4 opacity-70" />}
+                {!option.Icon && <span className="w-4" />}
+                <span>{option.label}</span>
+                {option.isPremium && (
+                  <span className="ml-2 text-[10px] uppercase tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 text-black font-bold px-1.5 py-0.5 rounded-full shadow-[0_2px_10px_rgba(251,191,36,0.2)]">
+                    PRO
+                  </span>
+                )}
+                {selectedValue === option.value && <Check className="w-3 h-3 ml-auto" />}
+              </button>
+            ))}
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+};
 
 export default function CreatePage() {
   const [prompt, setPrompt] = useState("");
-  const [tone, setTone] = useState("professional");
-  const [platform, setPlatform] = useState("instagram");
+  const [tone, setTone] = useState("No Tone");
+  const [platform, setPlatform] = useState("Any platform");
   const [ratio, setRatio] = useState("square");
   const [ctaText, setCtaText] = useState("Shop Now");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [logo, setLogo] = useState<File | null>(null);
+  const [opacity, setOpacity] = useState(100);
+
+  // Advanced styling state
+  const [lighting, setLighting] = useState("none");
+  const [style, setStyle] = useState("none");
+  const [color, setColor] = useState("none");
+  const [composition, setComposition] = useState("none");
+  const [model, setModel] = useState("none");
+  const [productName, setProductName] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
+
+  // Mode Slider State
+  const [activeMode, setActiveMode] = useState("Ad Generator AI");
+  const modes = ["Ad Generator AI", "Logo Maker AI", "Campaign Editor"];
+
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setLogo(e.target.files[0]);
+    }
+  };
+
+  const triggerLogoUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleModeChange = (mode: string) => {
+    setActiveMode(mode);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +281,21 @@ export default function CreatePage() {
           clearInterval(interval);
           setTimeout(() => {
             setLoading(false);
-            navigate("/editor");
+            if (activeMode === "Ad Generator AI") {
+              navigate("/editor", {
+                state: {
+                  prompt,
+                  tone,
+                  platform,
+                  ratio,
+                  ctaText,
+                  productName,
+                  targetAudience,
+                  opacity,
+                  model
+                }
+              });
+            }
           }, 500);
           return 100;
         }
@@ -34,104 +304,317 @@ export default function CreatePage() {
     }, 300);
   };
 
+  const renderBadgeButton = (label: string, isActive: boolean, icon: React.ReactNode = null) => (
+    <div className={`px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm
+                    rounded-full border transition-all duration-200
+                    flex items-center gap-2 select-none
+                    ${isActive
+        ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
+        : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-200'}
+                  `}>
+      {icon}
+      <span>{label}</span>
+    </div>
+  );
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen gradient-bg-blue-3 text-white">
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">
-        <div className="p-8">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Campaign</h1>
-            <p className="text-gray-600 mb-8">Let AI create your perfect social media ad</p>
+        <div className="p-4 sm:p-8">
+          <div className="mx-auto max-w-5xl">
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Describe Your Ad</h2>
-                <textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Example: Eco-friendly reusable coffee cup made from bamboo, perfect for morning commuters. Highlight sustainability and modern design."
-                  required
-                />
+            {/* Mode Slider */}
+            <div className="flex justify-center mb-8">
+              <div className="backdrop-blur-md p-1 rounded-xl flex space-x-1 border border-white/10 bg-white/5 shadow-xl overflow-x-auto max-w-full">
+                {modes.map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => handleModeChange(mode)}
+                    className={`px-4 sm:px-6 py-2.5 rounded-lg font-medium text-sm transition-all duration-300 whitespace-nowrap ${activeMode === mode
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                      }`}
+                  >
+                    {mode}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Campaign Options</h2>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Tone</label>
-                    <select value={tone} onChange={(e) => setTone(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg">
-                      <option value="professional">Professional</option>
-                      <option value="witty">Witty</option>
-                      <option value="urgent">Urgent</option>
-                      <option value="inspirational">Inspirational</option>
-                      <option value="casual">Casual</option>
-                    </select>
-                  </div>
+            <div className="text-center sm:text-left">
+              <h1 className="text-3xl font-bold mb-2">
+                {activeMode === "Ad Generator AI" && "Create New Campaign"}
+                {activeMode === "Logo Maker AI" && "Design Your Brand Logo"}
+                {activeMode === "Campaign Editor" && "Edit Existing Campaigns"}
+              </h1>
+              <p className="text-blue-200 mb-8">
+                {activeMode === "Ad Generator AI" && "Let AI create your perfect social media ad"}
+                {activeMode === "Logo Maker AI" && "Generate unique logos for your brand instantly"}
+                {activeMode === "Campaign Editor" && "Fine-tune and customize your generated assets"}
+              </p>
+            </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Platform</label>
-                    <select value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg">
-                      <option value="instagram">Instagram</option>
-                      <option value="facebook">Facebook</option>
-                      <option value="linkedin">LinkedIn</option>
-                      <option value="twitter">Twitter</option>
-                      <option value="tiktok">TikTok</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Aspect Ratio</label>
-                    <select value={ratio} onChange={(e) => setRatio(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg">
-                      <option value="square">Square (1:1)</option>
-                      <option value="vertical">Vertical (9:16)</option>
-                      <option value="horizontal">Horizontal (16:9)</option>
-                    </select>
-                  </div>
+            {activeMode === "Campaign Editor" ? (
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-12 text-center shadow-xl">
+                <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-400">
+                  <i className="fas fa-edit text-3xl"></i>
                 </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Brand Elements</h2>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Call-to-Action Text</label>
-                  <input
-                    type="text"
-                    value={ctaText}
-                    onChange={(e) => setCtaText(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-                    placeholder="Shop Now"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <button type="button" onClick={() => navigate("/dashboard")} className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50">
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary text-white px-8 py-3 rounded-lg font-semibold flex items-center">
-                  <i className="fas fa-magic mr-2"></i>
-                  Generate Ad
+                <h2 className="text-2xl font-bold text-white mb-4">Go to Campaign Editor</h2>
+                <p className="text-gray-300 mb-8 max-w-lg mx-auto">Access the full-featured editor to customize your ads, adjust layers, and apply filters.</p>
+                <button
+                  onClick={() => navigate("/editor")}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-transform hover:scale-105"
+                >
+                  Launch Editor
                 </button>
               </div>
-            </form>
+            ) : activeMode === "Logo Maker AI" ? (
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-12 text-center shadow-xl">
+                <div className="w-20 h-20 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-purple-400">
+                  <i className="fas fa-fingerprint text-3xl"></i>
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-4">Logo Generator Coming Soon</h2>
+                <p className="text-gray-300 mb-8 max-w-lg mx-auto">We are putting the finishing touches on our AI Logo Maker. Stay tuned for instant brand identity generation.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Ad Description */}
+                <div className="w-full mx-auto">
+                  {/* Input Area */}
+                  <div className="bg-white/5 pb-16 backdrop-blur-md border border-white/10 rounded-2xl p-4  shadow-xl relative overflow-hidden group">
+                    {/* Glossy Effect */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50"></div>
+
+                    <div className="flex justify-between mb-4 items-center">
+                      <h2 className="text-xl font-bold text-white flex items-center">
+                        <i className="fas fa-pen-nib mr-3 text-blue-400"></i>
+                        Describe Your Ad
+                      </h2>
+
+                      <button
+                        type="button"
+                        onClick={triggerLogoUpload}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs hover:bg-indigo-500/20 transition-all cursor-pointer"
+                      >
+                        {logo ? <Check size={12} /> : <i className="fas fa-plus"></i>}
+                        <span>{logo ? "Logo Added" : "Add Logo"}</span>
+                      </button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        ref={fileInputRef}
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                      />
+                    </div>
+
+                    <div className="relative  bg-black/20 border border-white/10 rounded-xl resize-none">
+                      <textarea
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        rows={6}
+                        className="w-full px-4 pt-4 bg-transparent rounded-xl resize-none text-white placeholder-gray-500 font-light focus:outline-none focus:border-transparent active:outline-none"
+                        placeholder="Example: Eco-friendly reusable coffee cup made from bamboo, perfect for morning commuters. Highlight sustainability and modern design."
+                        required
+                      />
+
+                      <button
+                        type="button"
+                        className="absolute bottom-4 right-4 p-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-lg transition-colors group/btn z-10"
+                        title="Enhance Prompt"
+                      >
+                        <Wand2 size={16} className="group-hover/btn:animate-pulse" />
+                      </button>
+
+                    </div>
+                    {/* Tool Bar */}
+                    <div className="pt-24 absolute bottom-3 left-4 right-16 flex flex-wrap gap-1.5 items-center z-10 pointer-events-none">
+                      <div className="pointer-events-auto flex flex-wrap gap-1.5">
+                        {/* Aspect Ratio Dropdown */}
+                        <Dropdown
+                          options={aspectRatios}
+                          selectedValue={ratio}
+                          onSelect={setRatio}
+                          trigger={(selected, isOpen) => renderBadgeButton(
+                            selected ? selected.label : "Aspect Ratio",
+                            isOpen || (selected ? true : false),
+                            selected?.Icon && <selected.Icon size={14} />
+                          )}
+                        />
+
+                        <div className="w-px h-5 bg-white/10 mx-0.5 self-center"></div>
+
+                        {/* Style Dropdown */}
+                        <Dropdown
+                          options={styleOptions}
+                          selectedValue={style}
+                          onSelect={setStyle}
+                          trigger={(selected, isOpen) => renderBadgeButton(
+                            selected && selected.value !== 'none' ? selected.label : "No Style",
+                            isOpen || (selected ? selected.value !== 'none' : false),
+                            selected?.Icon && <selected.Icon size={14} />
+                          )}
+                        />
+
+                        {/* Lighting Dropdown */}
+                        <Dropdown
+                          options={lightingOptions}
+                          selectedValue={lighting}
+                          onSelect={setLighting}
+                          trigger={(selected, isOpen) => renderBadgeButton(
+                            selected && selected.value !== 'none' ? selected.label : "No Lighting",
+                            isOpen || (selected ? selected.value !== 'none' : false),
+                            selected?.Icon && <selected.Icon size={14} />
+                          )}
+                        />
+
+                        {/* Color Dropdown */}
+                        <Dropdown
+                          options={colorOptions}
+                          selectedValue={color}
+                          onSelect={setColor}
+                          trigger={(selected, isOpen) => renderBadgeButton(
+                            selected && selected.value !== 'none' ? selected.label : "No Tone",
+                            isOpen || (selected ? selected.value !== 'none' : false),
+                            selected?.Icon && <selected.Icon size={14} />
+                          )}
+                        />
+
+                        {/* Platform Dropdown */}
+                        <Dropdown
+                          options={platformOptions}
+                          selectedValue={platform}
+                          onSelect={setPlatform}
+                          trigger={(selected, isOpen) => renderBadgeButton(
+                            selected && selected.value !== 'none' ? selected.label : "All Platform",
+                            isOpen || (selected ? selected.value !== 'All' : false),
+                            selected?.Icon && <selected.Icon size={14} />
+                          )}
+                        />
+
+
+                      </div>
+
+                    </div>
+                    <div className="absolute bottom-1 right-4 p-2 text-blue-400 rounded-lg transition-colors group/btn z-10">
+                      <Dropdown
+                        options={modelOptions}
+                        selectedValue={model}
+                        onSelect={setModel}
+                        trigger={(selected, isOpen) => renderBadgeButton(
+                          selected && selected.value !== 'none' ? selected.label : "Model: Select AI",
+                          isOpen || (selected ? selected.value !== 'none' : false),
+                          selected?.Icon && <selected.Icon size={14} />
+                        )}
+                      />
+                    </div>
+
+                  </div>
+                </div>
+
+                <div className="relative overflow-hidden group">
+                  <div className="grid md:grid-cols-1 gap-8">
+                    {/* Brand Identity */}
+                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent opacity-50"></div>
+
+                      <h2 className="text-xl font-bold text-white mb-6 flex items-center">
+                        <i className="fas fa-sliders-h mr-3 text-yellow-400"></i>
+                        Brand Details
+                      </h2>
+
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Product / Brand Name</label>
+                            <input
+                              type="text"
+                              value={productName}
+                              onChange={(e) => setProductName(e.target.value)}
+                              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 placeholder-gray-600 text-sm transition-all"
+                              placeholder="e.g. EcoCup"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Target Audience</label>
+                            <input
+                              type="text"
+                              value={targetAudience}
+                              onChange={(e) => setTargetAudience(e.target.value)}
+                              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 placeholder-gray-600 text-sm transition-all"
+                              placeholder="e.g. Young professionals, Coffee lovers"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Call-to-Action</label>
+                            <input
+                              type="text"
+                              value={ctaText}
+                              onChange={(e) => setCtaText(e.target.value)}
+                              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 placeholder-gray-600 text-sm transition-all"
+                              placeholder="e.g. Shop Now"
+                            />
+                          </div>
+
+                          <div>
+                            <div className="flex justify-between text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
+                              <span>Logo Opacity</span>
+                              <span className="text-yellow-400">{opacity}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={opacity}
+                              onChange={(e) => setOpacity(parseInt(e.target.value))}
+                              className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-yellow-400"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+
+                <div className="flex items-center justify-between pt-4 pb-8">
+                  <button type="button" onClick={() => navigate("/dashboard")} className="px-6 py-3 rounded-xl text-gray-400 font-medium hover:text-white hover:bg-white/5 transition-colors">
+                    Cancel
+                  </button>
+                  <button type="submit" className="px-10 py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-[length:200%_auto] animate-gradient hover:scale-105 text-white rounded-xl font-bold shadow-xl shadow-blue-500/20 transition-all flex items-center gap-2">
+                    <i className="fas fa-magic"></i>
+                    <span>Generate Options</span>
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </main>
 
       {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
-            <div className="text-center">
-              <div className="spinner w-16 h-16 mx-auto mb-4 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Generating Your Ad</h3>
-              <p className="text-gray-600 mb-6">AI is creating magic... This will take just a moment.</p>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-gradient-to-r from-blue-600 to-green-500 h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[10000] flex items-center justify-center">
+          <div className="bg-[#0f172a] border border-white/10 rounded-2xl p-12 max-w-md w-full mx-4 shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent pointer-events-none"></div>
+            <div className="text-center relative z-10">
+              <div className="relative w-20 h-20 mx-auto mb-6">
+                <div className="absolute inset-0 border-4 border-blue-500/30 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <i className="fas fa-magic absolute inset-0 m-auto flex items-center justify-center text-blue-400 text-xl animate-pulse"></i>
               </div>
-              <p className="text-sm text-gray-500 mt-2">{Math.round(progress)}%</p>
+              <h3 className="text-2xl font-bold text-white mb-2">Generating Assets</h3>
+              <p className="text-gray-400 mb-8">AI is crafting your campaign variations...</p>
+              <div className="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-500 to-indigo-400 h-full rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(59,130,246,0.6)]" style={{ width: `${progress}%` }}></div>
+              </div>
+              <p className="text-xs text-blue-400 mt-3 font-mono tracking-wider">{Math.round(progress)}% COMPLETE</p>
             </div>
           </div>
         </div>

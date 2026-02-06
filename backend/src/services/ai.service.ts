@@ -1,6 +1,33 @@
 import axios from "axios";
 import dotenv from "dotenv";
+import { useState } from "react";
 import { InferenceClient } from "@huggingface/inference";
+
+declare const puter: any;
+const [loading, setLoading] = useState(false);
+const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+export default function WatercolorGenerator() {
+  const [loading, setLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  const generate = async () => {
+    setLoading(true);
+
+    const img = await puter.ai.txt2img(
+      "Turn this image into a watercolor painting",
+      {
+        model: "gemini-2.5-flash-image-preview",
+        input_image: "BASE64_IMAGE_HERE",
+        input_image_mime_type: "image/png",
+      }
+    );
+
+    setImageUrl(img.src);
+    setLoading(false);
+  };
+}
+
 
 dotenv.config();
 
