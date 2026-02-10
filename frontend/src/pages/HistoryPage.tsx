@@ -31,6 +31,19 @@ export default function HistoryPage() {
     fetchHistory();
   }, []);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedPlatform, setSelectedPlatform] = useState("All Platforms");
+  const [selectedStyle, setSelectedStyle] = useState("All Styles");
+
+  const filteredHistory = history.filter((item) => {
+    const matchesSearch = (item.prompt?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (item.productName?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+    const matchesPlatform = selectedPlatform === "All Platforms" || item.platform === selectedPlatform;
+    const matchesStyle = selectedStyle === "All Styles" || item.style === selectedStyle;
+
+    return matchesSearch && matchesPlatform && matchesStyle;
+  });
+
   const fetchHistory = async () => {
     try {
       const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
@@ -57,9 +70,33 @@ export default function HistoryPage() {
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   };
 
+  const handleDownload = async (imageUrl: string, id: string) => {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      if (userInfo.token) {
+        await axios.post(`http://localhost:5000/api/images/download/${id}`, {}, {
+          headers: { Authorization: `Bearer ${userInfo.token}` }
+        });
+      }
+
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = `ad-vantage-${id}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+
   return (
     <div className="flex min-h-screen gradient-bg-blue-3 text-white">
       <Sidebar />
+
+
+
+
 
       <main className="flex-1 overflow-y-auto">
         <div className="p-8">
@@ -75,23 +112,39 @@ export default function HistoryPage() {
                 <input
                   type="text"
                   placeholder="Search campaigns..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
                 />
               </div>
               <div className="relative">
-                <select className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer hover:bg-white/10 transition-colors">
+                <select
+                  value={selectedPlatform}
+                  onChange={(e) => setSelectedPlatform(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer hover:bg-white/10 transition-colors"
+                >
                   <option className="bg-[#0f172a]">All Platforms</option>
                   <option className="bg-[#0f172a]">Instagram</option>
                   <option className="bg-[#0f172a]">Facebook</option>
                   <option className="bg-[#0f172a]">LinkedIn</option>
+                  <option className="bg-[#0f172a]">X (Twitter)</option>
+                  <option className="bg-[#0f172a]">TikTok</option>
                 </select>
                 <i className="fas fa-chevron-down absolute right-4 top-4 text-gray-400 pointer-events-none"></i>
               </div>
               <div className="relative">
-                <select className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer hover:bg-white/10 transition-colors">
+                <select
+                  value={selectedStyle}
+                  onChange={(e) => setSelectedStyle(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer hover:bg-white/10 transition-colors"
+                >
                   <option className="bg-[#0f172a]">All Styles</option>
                   <option className="bg-[#0f172a]">Minimalist</option>
+                  <option className="bg-[#0f172a]">Realistic</option>
                   <option className="bg-[#0f172a]">Cyberpunk</option>
+                  <option className="bg-[#0f172a]">Abstract</option>
+                  <option className="bg-[#0f172a]">Gouache</option>
+                  <option className="bg-[#0f172a]">Pixel Art</option>
                 </select>
                 <i className="fas fa-chevron-down absolute right-4 top-4 text-gray-400 pointer-events-none"></i>
               </div>
@@ -103,7 +156,7 @@ export default function HistoryPage() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
               <p className="text-gray-400">Loading your creative history...</p>
             </div>
-          ) : history.length === 0 ? (
+          ) : filteredHistory.length === 0 ? (
             <div className="text-center py-20 bg-white/5 rounded-2xl border border-white/10">
               <i className="fas fa-image text-4xl text-gray-600 mb-4"></i>
               <p className="text-gray-400 text-lg">No images generated yet.</p>
@@ -116,7 +169,7 @@ export default function HistoryPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {history.map((item) => (
+              {filteredHistory.map((item) => (
                 <div key={item._id} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-xl overflow-hidden group hover:border-blue-500/30 transition-all duration-300 hover:transform hover:-translate-y-1">
                   <div className="h-48 overflow-hidden relative">
                     <img
@@ -176,7 +229,10 @@ export default function HistoryPage() {
                       >
                         Edit
                       </button>
-                      <button className="px-3 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-colors">
+                      <button
+                        onClick={() => handleDownload(item.imageUrl, item._id)}
+                        className="px-3 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-colors"
+                      >
                         <i className="fas fa-download"></i>
                       </button>
                       <button className="px-3 py-2.5 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 rounded-xl text-gray-400 hover:text-red-400 transition-colors">

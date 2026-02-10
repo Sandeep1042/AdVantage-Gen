@@ -15,6 +15,7 @@ export interface IImage extends Document {
     ctaText?: string;
     opacity?: number;
     aiModel?: string;
+    downloadCount?: number;
     createdAt: Date;
 }
 
@@ -32,7 +33,8 @@ const ImageSchema: Schema = new Schema({
     targetAudience: { type: String },
     ctaText: { type: String },
     opacity: { type: Number, default: 100 },
-    aiModel: { type: String }
+    aiModel: { type: String },
+    downloadCount: { type: Number, default: 0 }
 }, { timestamps: true });
 
 export default mongoose.model<IImage>('Image', ImageSchema);

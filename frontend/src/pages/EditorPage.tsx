@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 import Sidebar from "../components/Sidebar";
 
 export default function EditorPage() {
@@ -13,7 +14,32 @@ export default function EditorPage() {
     targetAudience: "Coffee Lovers",
     opacity: 80,
     model: "Basic",
-    prompt: "Experience sustainable luxury..."
+    prompt: "Experience sustainable luxury...",
+    id: "" // Default ID
+  };
+
+  const handleDownload = async () => {
+    if (!data.imageUrl) return;
+    try {
+      if (data.id) {
+        // Fix: Check empty object properly if needed, but localstorage usually has string.
+        const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+        if (userInfo.token) {
+          await axios.post(`http://localhost:5000/api/images/download/${data.id}`, {}, {
+            headers: { Authorization: `Bearer ${userInfo.token}` }
+          });
+        }
+      }
+
+      const link = document.createElement('a');
+      link.href = data.imageUrl;
+      link.download = `ad-vantage-${data.id || 'export'}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
   };
 
   return (
@@ -60,7 +86,10 @@ export default function EditorPage() {
                     <i className="fas fa-sync-alt mr-2 text-blue-400 group-hover:rotate-180 transition-transform duration-500"></i>
                     Remix
                   </button>
-                  <button className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-3 rounded-xl font-semibold flex items-center justify-center shadow-lg shadow-blue-500/20 transition-all hover:scale-105">
+                  <button
+                    onClick={handleDownload}
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-3 rounded-xl font-semibold flex items-center justify-center shadow-lg shadow-blue-500/20 transition-all hover:scale-105"
+                  >
                     <i className="fas fa-download mr-2"></i>
                     Export
                   </button>

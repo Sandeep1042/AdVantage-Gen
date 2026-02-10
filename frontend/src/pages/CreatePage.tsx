@@ -425,7 +425,8 @@ export default function CreatePage() {
               targetAudience,
               opacity,
               model,
-              style // Pass style to Editor
+              style, // Pass style to Editor
+              id: data.id // Pass ID for download tracking
             }
           });
         }
