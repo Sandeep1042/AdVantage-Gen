@@ -9,7 +9,7 @@ import {
 
 
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { createPortal } from "react-dom";
 
 import Sidebar from "../components/Sidebar";
@@ -315,7 +315,26 @@ export default function CreatePage() {
   const modes = ["Ad Generator AI", "Logo Maker AI", "Campaign Editor"];
 
   const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (location.state) {
+      const state = location.state as any;
+      if (state.prompt) setPrompt(state.prompt);
+      if (state.platform) setPlatform(state.platform);
+      if (state.ratio) setRatio(state.ratio);
+      if (state.ctaText) setCtaText(state.ctaText);
+      if (state.productName) setProductName(state.productName);
+      if (state.targetAudience) setTargetAudience(state.targetAudience);
+      if (state.opacity) setOpacity(state.opacity);
+      if (state.model) setModel(state.model);
+      if (state.style) setStyle(state.style);
+      if (state.lighting) setLighting(state.lighting);
+      if (state.color) setColor(state.color);
+      if (state.tone) setColor(state.tone); // Fallback if color is mapped to tone
+    }
+  }, [location.state]);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -406,6 +425,14 @@ export default function CreatePage() {
         }
       });
 
+      const logoPromise = logo ? new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(logo);
+      }) : Promise.resolve(null);
+
+      const logoUrl = await logoPromise;
+
       clearInterval(interval);
       setProgress(100);
 
@@ -426,7 +453,8 @@ export default function CreatePage() {
               opacity,
               model,
               style, // Pass style to Editor
-              id: data.id // Pass ID for download tracking
+              id: data.id, // Pass ID for download tracking
+              logoUrl // Pass logo URL
             }
           });
         }

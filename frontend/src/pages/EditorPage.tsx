@@ -1,5 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import html2canvas from "html2canvas";
+import { useRef } from "react";
 import Sidebar from "../components/Sidebar";
 
 export default function EditorPage() {
@@ -18,27 +20,55 @@ export default function EditorPage() {
     id: "" // Default ID
   };
 
+  const previewRef = useRef<HTMLDivElement>(null);
+
   const handleDownload = async () => {
-    if (!data.imageUrl) return;
     try {
+      // 1. Track Download in Backend (Do this first so it counts even if export has issues)
       if (data.id) {
-        // Fix: Check empty object properly if needed, but localstorage usually has string.
         const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
         if (userInfo.token) {
           await axios.post(`http://localhost:5000/api/images/download/${data.id}`, {}, {
             headers: { Authorization: `Bearer ${userInfo.token}` }
           });
+          console.log("Download tracked for ID:", data.id);
         }
+      } else {
+        console.warn("No ID found for tracking download");
       }
 
+      if (!previewRef.current) return;
+
+      // 2. Capture the preview div including overlays
+      const canvas = await html2canvas(previewRef.current, {
+        useCORS: true, // Important for external images
+        allowTaint: true,
+        scale: 2,      // Better quality
+        backgroundColor: null, // Transparent background if possible
+        logging: true, // Enable logging for debugging
+      });
+
+      const image = canvas.toDataURL("image/png");
+
+      // 3. Trigger Download
       const link = document.createElement('a');
-      link.href = data.imageUrl;
+      link.href = image;
       link.download = `ad-vantage-${data.id || 'export'}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
     } catch (error) {
-      console.error("Download failed:", error);
+      console.error("Download/Export failed:", error);
+      // Fallback: Try to download just the image if canvas fails
+      if (data.imageUrl) {
+        const link = document.createElement('a');
+        link.href = data.imageUrl;
+        link.download = `ad-vantage-${data.id || 'fallback'}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     }
   };
 
@@ -58,13 +88,26 @@ export default function EditorPage() {
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-sm  p-3">
-                <div className="border-2 border-dashed border-white/40 rounded-lg relative bg-white/40 min-h-[400px] flex items-center justify-center overflow-hidden">
+                <div ref={previewRef} className="border-2 border-dashed border-white/40 rounded-lg relative bg-white/40 min-h-[400px] flex items-center justify-center overflow-hidden">
                   {data.imageUrl ? (
                     <div className="relative w-full h-full min-h-[400px]">
-                      <img src={data.imageUrl} alt="Generated Ad" className="w-full h-full object-contain rounded-lg shadow-2xl" />
-                      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-full shadow-xl font-bold text-gray-900 animate-fade-in-up">
-                        {data.ctaText} →
+                      <img
+                        src={data.imageUrl}
+                        alt="Generated Ad"
+                        crossOrigin="anonymous"
+                        className="w-full h-full object-contain rounded-lg shadow-2xl"
+                      />
+                      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-8 h-12 rounded-full shadow-xl font-bold text-gray-900 animate-fade-in-up flex items-center justify-center whitespace-nowrap leading-none">
+                        <span className="mt-0.5">{data.ctaText} →</span>
                       </div>
+                      {data.logoUrl && (
+                        <img
+                          src={data.logoUrl}
+                          alt="Brand Logo"
+                          className="absolute top-6 right-6 w-16 h-16 object-contain drop-shadow-lg"
+                          style={{ opacity: (data.opacity || 100) / 100 }}
+                        />
+                      )}
                     </div>
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/60 to-purple-600/60 rounded-lg overflow-hidden">
@@ -82,7 +125,7 @@ export default function EditorPage() {
                 </div>
 
                 <div className="mt-3 flex space-x-3">
-                  <button onClick={() => navigate("/create")} className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white py-3 rounded-xl font-semibold flex items-center justify-center transition-all hover:scale-105 backdrop-blur-sm group">
+                  <button onClick={() => navigate("/create", { state: data })} className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white py-3 rounded-xl font-semibold flex items-center justify-center transition-all hover:scale-105 backdrop-blur-sm group">
                     <i className="fas fa-sync-alt mr-2 text-blue-400 group-hover:rotate-180 transition-transform duration-500"></i>
                     Remix
                   </button>
