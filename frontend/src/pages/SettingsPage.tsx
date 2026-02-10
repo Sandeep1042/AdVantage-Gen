@@ -1,6 +1,42 @@
 import Sidebar from "../components/Sidebar";
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function SettingsPage() {
+
+    const [user, setUser] = useState<any>(null);
+    const [currentPlan, setCurrentPlan] = useState<any>(null);
+
+    useEffect(() => {
+        const userInfo = localStorage.getItem("userInfo");
+        if (userInfo) {
+            setUser(JSON.parse(userInfo));
+        }
+    }, []);
+
+    useEffect(() => {
+        if (user?.plan) {
+            // Map legacy "Free" plan to "Starter"
+            const planName = user.plan === "Free" || user.plan === "Free Plan" ? "Starter" : user.plan;
+            fetchPlanDetails(planName);
+        }
+    }, [user]);
+
+    const fetchPlanDetails = async (planName: string) => {
+        try {
+            const { data } = await axios.get("http://localhost:5000/api/plans");
+            const plan = data.find((p: any) => p.name === planName);
+            if (plan) {
+                setCurrentPlan(plan);
+            }
+        } catch (error) {
+            console.error("Error fetching plan details", error);
+        }
+    };
+
+    if (!user) return null; // Or a loading spinner
+
     return (
         <div className="gradient-bg-blue-3 min-h-screen flex">
             <Sidebar />
@@ -9,25 +45,70 @@ export default function SettingsPage() {
                     <h1 className="text-3xl font-bold text-white mb-8">Settings</h1>
 
                     <div className="grid gap-8">
-                        {/* Account Settings */}
-                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
-                            <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-                                <i className="fas fa-user-cog mr-3 text-blue-400"></i>
-                                Account Settings
-                            </h2>
-                            <form className="space-y-4">
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-gray-300 text-sm mb-2">Display Name</label>
-                                        <input type="text" defaultValue="John Doe" className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors" />
+                        {/* Edit Profile & Plan */}
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {/* Edit Profile */}
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+                                <div>
+                                    <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                                        <i className="fas fa-user-edit mr-3 text-blue-400"></i>
+                                        Edit Profile
+                                    </h2>
+                                    <div className="flex items-center space-x-4 mb-6">
+                                        <img
+                                            src={user.profilePicture || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541"}
+                                            alt="Profile"
+                                            className="w-16 h-16 rounded-full object-cover border-2 border-white/20"
+                                        />
+                                        <div>
+                                            <p className="text-white font-bold text-lg">{user.name}</p>
+                                            <p className="text-gray-400 text-sm">{user.email}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-gray-300 text-sm mb-2">Email</label>
-                                        <input type="email" defaultValue="john@example.com" className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors" />
+                                    <p className="text-gray-300 mb-6">
+                                        Update your personal information, profile picture, and bio.
+                                    </p>
+                                </div>
+                                <Link to="/profile" className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all text-center block">
+                                    Go to Profile
+                                </Link>
+                            </div>
+
+                            {/* Plan & Billing */}
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
+                                <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                                    <i className="fas fa-crown mr-3 text-yellow-400"></i>
+                                    Plan & Billing
+                                </h2>
+                                <div className="mb-4">
+                                    <p className="text-gray-400 text-sm">Current Plan</p>
+                                    <div className="flex items-baseline space-x-2">
+                                        <p className="text-2xl font-bold text-white">{currentPlan?.name || user.plan || "Starter"}</p>
+                                        <p className="text-lg text-blue-300">{currentPlan?.price}</p>
                                     </div>
                                 </div>
-                                <button type="button" className="text-blue-400 hover:text-blue-300 text-sm font-medium">Change Password?</button>
-                            </form>
+                                <ul className="space-y-2 mb-6 text-gray-300 text-sm">
+                                    {currentPlan ? (
+                                        currentPlan.features.slice(0, 3).map((feature: string, index: number) => (
+                                            <li key={index} className="flex items-center"><i className="fas fa-check text-green-400 mr-2"></i> {feature}</li>
+                                        ))
+                                    ) : (
+                                        <>
+                                            <li className="flex items-center"><i className="fas fa-check text-green-400 mr-2"></i> Unlimited Campaigns</li>
+                                            <li className="flex items-center"><i className="fas fa-check text-green-400 mr-2"></i> Advanced Analytics</li>
+                                            <li className="flex items-center"><i className="fas fa-check text-green-400 mr-2"></i> Priority Support</li>
+                                        </>
+                                    )}
+                                </ul>
+                                <div className="flex space-x-3">
+                                    <button className="flex-1 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-colors">
+                                        Change Plan
+                                    </button>
+                                    <button className="flex-1 py-2 text-red-400 hover:bg-red-500/10 rounded-lg font-medium transition-colors">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Notifications */}
@@ -60,21 +141,7 @@ export default function SettingsPage() {
                             </div>
                         </div>
 
-                        {/* Appearance */}
-                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
-                            <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-                                <i className="fas fa-paint-brush mr-3 text-green-400"></i>
-                                Appearance
-                            </h2>
-                            <div className="flex space-x-4">
-                                <button className="flex-1 p-4 rounded-xl border-2 border-blue-500 bg-blue-500/20 text-white font-medium">
-                                    <i className="fas fa-moon mr-2"></i> Dark Mode
-                                </button>
-                                <button className="flex-1 p-4 rounded-xl border border-white/10 bg-white/5 text-gray-400 hover:text-white font-medium transition-colors">
-                                    <i className="fas fa-sun mr-2"></i> Light Mode
-                                </button>
-                            </div>
-                        </div>
+
 
                         <div className="flex justify-end pt-4">
                             <button className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all transform hover:scale-[1.02]">

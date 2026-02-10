@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 
 interface AuthPageProps {
     setIsAuthenticated: (value: boolean) => void;
@@ -28,20 +29,37 @@ export default function AuthPage({ setIsAuthenticated }: AuthPageProps) {
         }
     }, [location.pathname]);
 
-    const handleLoginSubmit = (e: React.FormEvent) => {
+    const handleLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Add actual authentication logic
-        setIsAuthenticated(true);
-        localStorage.setItem("isAuthenticated", "true");
-        navigate("/dashboard");
+        try {
+            const { data } = await axios.post("http://localhost:5000/api/auth/login", {
+                email: loginEmail,
+                password: loginPassword,
+            });
+
+            localStorage.setItem("userInfo", JSON.stringify(data));
+            setIsAuthenticated(true);
+            navigate("/dashboard");
+        } catch (error: any) {
+            alert(error.response?.data?.message || "Login failed");
+        }
     };
 
-    const handleRegisterSubmit = (e: React.FormEvent) => {
+    const handleRegisterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Add actual registration logic
-        setIsAuthenticated(true);
-        localStorage.setItem("isAuthenticated", "true");
-        navigate("/dashboard");
+        try {
+            const { data } = await axios.post("http://localhost:5000/api/auth/register", {
+                name: registerName,
+                email: registerEmail,
+                password: registerPassword,
+            });
+
+            localStorage.setItem("userInfo", JSON.stringify(data));
+            setIsAuthenticated(true);
+            navigate("/dashboard");
+        } catch (error: any) {
+            alert(error.response?.data?.message || "Registration failed");
+        }
     };
 
     const handleGoogleAuth = () => {

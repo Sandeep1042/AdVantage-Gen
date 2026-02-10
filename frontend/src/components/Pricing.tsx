@@ -1,60 +1,28 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function Pricing() {
-  const plans = [
-    {
-      name: "Starter",
-      price: "$0",
-      period: "/month",
-      features: [
-        "50 ad generations/month",
-        "AI image & copywriting",
-        "3 social platforms",
-        "Basic analytics",
-        "Email support"
-      ],
-      buttonText: "Get Started",
-      buttonClass: "bg-gray-200 text-gray-900 hover:bg-gray-300",
-      borderClass: "border-2 border-gray-200 hover:border-blue-500",
-      bgClass: "bg-gradient-to-br from-white/20 to-white/40 text-white"
-      
-    },
-    {
-      name: "Professional",
-      price: "$79",
-      period: "/month",
-      popular: true,
-      features: [
-        "200 ad generations/month",
-        "Advanced AI features",
-        "All social platforms",
-        "Advanced analytics",
-        "Priority support",
-        "Brand kit storage"
-      ],
-      buttonText: "Get Started",
-      buttonClass: "bg-white text-blue-600 hover:bg-gray-100",
-      bgClass: "bg-gradient-to-br from-blue-600/40 to-blue-700/40 text-white"
-    },
-    {
-      name: "Enterprise",
-      price: "$199",
-      period: "/month",
-      features: [
-        "Unlimited generations",
-        "Custom AI training",
-        "All platforms + API",
-        "Custom analytics",
-        "24/7 support",
-        "Team collaboration",
-        "Dedicated account manager"
-      ],
-      buttonText: "Contact Sales",
-      buttonClass: "bg-gradient-to-r from-blue-600 to-green-500 text-white hover:from-blue-700 hover:to-green-600",
-      borderClass: "border-2 border-gray-200 hover:border-blue-500",
-      bgClass: "bg-gradient-to-br from-white/20 to-white/40 text-white"
+  const [plans, setPlans] = useState([]);
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const fetchPlans = async () => {
+    try {
+      // First try to fetch plans, if empty, seed them
+      let { data } = await axios.get("http://localhost:5000/api/plans");
+      if (data.length === 0) {
+        await axios.post("http://localhost:5000/api/plans/seed");
+        const res = await axios.get("http://localhost:5000/api/plans");
+        data = res.data;
+      }
+      setPlans(data);
+    } catch (error) {
+      console.error("Error fetching plans", error);
     }
-  ];
+  };
 
   return (
     <section id="pricing" className="py-20 gradient-bg-gray">
@@ -65,14 +33,12 @@ export default function Pricing() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {plans.map((plan, index) => (
+          {plans.map((plan: any, index) => (
             <div
               key={index}
-              className={`${
-                plan.bgClass || `bg-white ${plan.borderClass}`
-              } rounded-2xl p-8 transition transform ${
-                plan.popular ? "md:scale-105 shadow-2xl" : ""
-              } relative`}
+              className={`${plan.bgClass || `bg-white ${plan.borderClass}`
+                } rounded-2xl p-8 transition transform ${plan.popular ? "md:scale-105 shadow-2xl" : ""
+                } relative`}
             >
               {plan.popular && (
                 <div className="absolute top-0 right-0 bg-yellow-400 text-gray-900 px-4 py-1 rounded-bl-xl rounded-tr-xl text-sm font-bold">
@@ -91,7 +57,7 @@ export default function Pricing() {
                 </span>
               </div>
               <ul className="space-y-4 mb-8">
-                {plan.features.map((feature, i) => (
+                {plan.features.map((feature: string, i: number) => (
                   <li key={i} className="flex items-start">
                     <i className={`fas fa-check ${plan.bgClass ? "text-yellow-300" : "text-green-500"} mt-1 mr-3`}></i>
                     <span className={plan.bgClass ? "" : "text-gray-700"}>{feature}</span>

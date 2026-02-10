@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 interface NavbarProps {
@@ -8,9 +8,22 @@ interface NavbarProps {
 export default function Navbar({ isAuthenticated = false }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const userInfo = localStorage.getItem("userInfo");
+    if (userInfo) {
+      setUser(JSON.parse(userInfo));
+    }
+  }, [isAuthenticated]); // Update when authentication status changes
 
   const isHome = location.pathname === "/";
   const navClass = isHome ? "gradient-bg-nav-home" : "gradient-bg-nav-else";
+
+  const defaultProfilePic = "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541";
+  const profilePic = user?.profilePicture || defaultProfilePic;
+  const userName = user?.name || "User";
+  const userEmail = user?.email || "";
 
   return (
     <nav id="top" className={`${navClass} shadow-sm w-full top-0 z-50 transition-colors duration-300`}>
@@ -50,9 +63,9 @@ export default function Navbar({ isAuthenticated = false }: NavbarProps) {
                 </div>
               </>
             ) : (
-              
+
               <div className="flex items-center space-x-6">
-                
+
                 <>
                   <a href="#ai-tools" className="text-gray-100 hover:text-white font-medium transition-colors">
                     AI Tools
@@ -63,7 +76,7 @@ export default function Navbar({ isAuthenticated = false }: NavbarProps) {
                   <a href="#pricing" className="text-gray-100 hover:text-white font-medium transition-colors">
                     Pricing
                   </a>
-                  
+
                 </>
 
                 <Link to="/dashboard" className="btn-primary text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition-transform duration-300 hover:-translate-y-1">
@@ -73,10 +86,10 @@ export default function Navbar({ isAuthenticated = false }: NavbarProps) {
                 {/* Profile Dropdown - Hover based */}
                 <div className="relative group">
                   <button className="flex items-center space-x-3 text-gray-100 hover:text-white focus:outline-none">
-                    <span className="font-medium">John Doe</span>
+                    <span className="font-medium">{userName}</span>
                     <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 p-[2px]">
                       <img
-                        src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
+                        src={profilePic}
                         alt="Profile"
                         className="w-full h-full rounded-full object-cover border-2 border-white/20"
                       />
@@ -86,8 +99,8 @@ export default function Navbar({ isAuthenticated = false }: NavbarProps) {
                   <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform group-hover:translate-y-0 translate-y-2 z-50">
                     <div className="w-56 bg-white dark:bg-gray-800 rounded-xl shadow-2xl py-2 border border-gray-100 dark:border-gray-700 overflow-hidden">
                       <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">John Doe</p>
-                        <p className="text-xs text-gray-500 truncate">john@example.com</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{userName}</p>
+                        <p className="text-xs text-gray-500 truncate">{userEmail}</p>
                       </div>
 
                       <Link
@@ -159,13 +172,13 @@ export default function Navbar({ isAuthenticated = false }: NavbarProps) {
               <>
                 <div className="px-2 py-2 flex items-center space-x-3 mb-4 bg-gray-800 rounded-lg">
                   <img
-                    src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
+                    src={profilePic}
                     alt="Profile"
                     className="w-10 h-10 rounded-full"
                   />
                   <div>
-                    <p className="text-white font-medium">John Doe</p>
-                    <p className="text-xs text-gray-400">john@example.com</p>
+                    <p className="text-white font-medium">{userName}</p>
+                    <p className="text-xs text-gray-400">{userEmail}</p>
                   </div>
                 </div>
                 <Link to="/dashboard" className="block text-gray-100 hover:text-white font-medium py-2">

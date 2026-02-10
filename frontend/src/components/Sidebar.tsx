@@ -1,7 +1,16 @@
 import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function Sidebar() {
   const location = useLocation();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const userInfo = localStorage.getItem("userInfo");
+    if (userInfo) {
+      setUser(JSON.parse(userInfo));
+    }
+  }, []);
 
   const navItems = [
     { path: "/dashboard", icon: "fa-home", label: "Dashboard" },
@@ -27,8 +36,8 @@ export default function Sidebar() {
                 key={item.path}
                 to={item.path}
                 className={`flex items-center px-4 py-3 rounded-xl font-medium transition-all duration-300 ${isActive
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
-                    : "text-gray-300 hover:bg-white/10 hover:text-white"
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
+                  : "text-gray-300 hover:bg-white/10 hover:text-white"
                   }`}
               >
                 <i className={`fas ${item.icon} w-5 ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}></i>
@@ -47,7 +56,7 @@ export default function Sidebar() {
           <Link to="/settings" className="relative group cursor-pointer">
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 p-[2px]">
               <img
-                src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
+                src={user?.profilePicture || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541"}
                 alt="Profile"
                 className="w-full h-full rounded-full object-cover border-2 border-white/20"
               />
@@ -60,9 +69,9 @@ export default function Sidebar() {
           {/* Username -> Profile */}
           <div className="flex-1 min-w-0">
             <Link to="/profile" className="block hover:underline">
-              <p className="text-sm font-semibold text-white truncate">John Doe</p>
+              <p className="text-sm font-semibold text-white truncate">{user?.name || "Guest User"}</p>
             </Link>
-            <p className="text-xs text-gray-400 truncate">Premium Plan</p>
+            <p className="text-xs text-gray-400 truncate">{user?.plan || "Free Plan"}</p>
           </div>
         </div>
       </div>
