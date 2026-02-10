@@ -376,8 +376,34 @@ export default function CreatePage() {
         });
       }, 500);
 
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      const token = userInfo.token;
+
+      console.log("DEBUG: Token from localStorage:", token);
+
+      if (!token) {
+        alert("You must be logged in to generate images.");
+        setLoading(false);
+        navigate("/login");
+        return;
+      }
+
       const { data } = await axios.post("http://localhost:5000/api/images/generate", {
         prompt: `Create a ${style} image with ${lighting} lighting and ${color} tones. Product: ${productName}. Target Audience: ${targetAudience}. Description: ${prompt}`,
+        style,
+        lighting,
+        color,
+        ratio,
+        platform,
+        productName,
+        targetAudience,
+        ctaText,
+        opacity,
+        aiModel: model // map local 'model' state to 'aiModel'
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
 
       clearInterval(interval);
@@ -391,14 +417,15 @@ export default function CreatePage() {
               prompt,
               enhancedPrompt: data.enhancedPrompt,
               imageUrl: data.imageUrl,
-              tone,
+              tone: color, // Map color to tone for Editor
               platform,
               ratio,
               ctaText,
               productName,
               targetAudience,
               opacity,
-              model
+              model,
+              style // Pass style to Editor
             }
           });
         }
@@ -407,7 +434,7 @@ export default function CreatePage() {
     } catch (error: any) {
       setLoading(false);
       console.error("Image Generation Error:", error);
-      alert(error.response?.data?.error || "Failed to generate image");
+      alert(error.response?.data?.message || error.response?.data?.error || "Failed to generate image");
     }
   };
 

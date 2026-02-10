@@ -1,35 +1,16 @@
 import { Router } from "express";
-import { enhancePrompt, createImage } from "../services/ai.service";
+import { generateImage, enhanceUserPrompt, getUserHistory } from "../controllers/image.controller";
+import { protect } from "../middleware/auth.middleware";
+
 const router = Router();
 
-router.post("/generate", async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    if (!prompt) return res.status(400).json({ error: "Prompt required" });
+// Generate a new image (Protected)
+router.post("/generate", protect, generateImage);
 
-    const enhancedPrompts = await enhancePrompt(prompt);
-    const selectedPrompt = enhancedPrompts[0];
-    const imageUrl = await createImage(selectedPrompt);
+// Enhance prompt (Public for now, or protected?)
+router.post("/enhance", enhanceUserPrompt);
 
-    res.json({ enhancedPrompt: selectedPrompt, imageUrl });
-  } catch (err) {
-    console.error("🔥 Error generating image:", err);
-    res.status(500).json({ error: "Image generation failed." });
-  }
-});
-
-router.post("/enhance", async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    if (!prompt) return res.status(400).json({ error: "Prompt required" });
-
-    const enhancedPrompts = await enhancePrompt(prompt);
-    res.json({ enhancedPrompts });
-  } catch (err) {
-    console.error("🔥 Error enhancing prompt:", err);
-    res.status(500).json({ error: "Prompt enhancement failed." });
-  }
-});
-
+// Get user history (Protected)
+router.get("/history", protect, getUserHistory);
 
 export default router;

@@ -104,22 +104,26 @@ export default function EditorPage() {
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg border border-white/5 hover:bg-white/10 transition-colors">
+                    <span className="text-gray-400">Style</span>
+                    <span className="font-medium text-white">{data.style || "-"}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg border border-white/5 hover:bg-white/10 transition-colors">
                     <span className="text-gray-400">Platform</span>
                     <span className="font-medium text-white flex items-center gap-2">
-                      {data.platform}
+                      {data.platform || "-"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg border border-white/5 hover:bg-white/10 transition-colors">
                     <span className="text-gray-400">Tone</span>
-                    <span className="font-medium text-white">{data.tone}</span>
+                    <span className="font-medium text-white">{data.tone || data.color || "-"}</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg border border-white/5 hover:bg-white/10 transition-colors">
                     <span className="text-gray-400">Aspect Ratio</span>
-                    <span className="font-medium text-white">{data.ratio}</span>
+                    <span className="font-medium text-white">{data.ratio || "-"}</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg border border-white/5 hover:bg-white/10 transition-colors">
                     <span className="text-gray-400">Model</span>
-                    <span className="font-medium text-white truncat max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap" title={data.model}>{data.model?.split('/').pop() || data.model}</span>
+                    <span className="font-medium text-white truncat max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap" title={data.model}>{data.model?.split('/').pop() || data.model || "-"}</span>
                   </div>
                 </div>
               </div>
@@ -136,7 +140,7 @@ export default function EditorPage() {
 
             <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/5">
               <span className="block text-gray-400 text-xs uppercase tracking-wider mb-2">Ad Prompt</span>
-              <p className="text-white text-sm leading-relaxed italic">"{data.prompt}"</p>
+              <p className="text-white text-sm leading-relaxed italic">"{data.prompt || "-"}"</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="p-4 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors text-center group">
@@ -144,7 +148,7 @@ export default function EditorPage() {
                   <i className="fas fa-tag text-blue-400"></i>
                 </div>
                 <span className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Product Name</span>
-                <span className="block font-bold text-white text-lg">{data.productName}</span>
+                <span className="block font-bold text-white text-lg">{data.productName || "-"}</span>
               </div>
 
               <div className="p-4 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors text-center group">
@@ -152,7 +156,7 @@ export default function EditorPage() {
                   <i className="fas fa-users text-purple-400"></i>
                 </div>
                 <span className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Target Audience</span>
-                <span className="block font-bold text-white text-lg">{data.targetAudience}</span>
+                <span className="block font-bold text-white text-lg">{data.targetAudience || "-"}</span>
               </div>
 
               <div className="p-4 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors text-center group">
@@ -160,7 +164,7 @@ export default function EditorPage() {
                   <i className="fas fa-mouse-pointer text-emerald-400"></i>
                 </div>
                 <span className="block text-gray-400 text-xs uppercase tracking-wider mb-1">CTA</span>
-                <span className="block font-bold text-white text-lg">{data.ctaText}</span>
+                <span className="block font-bold text-white text-lg">{data.ctaText || "-"}</span>
               </div>
 
               <div className="p-4 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors text-center group">
@@ -168,7 +172,7 @@ export default function EditorPage() {
                   <i className="fas fa-adjust text-orange-400"></i>
                 </div>
                 <span className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Logo Opacity</span>
-                <span className="block font-bold text-white text-lg">{data.opacity}%</span>
+                <span className="block font-bold text-white text-lg">{data.opacity !== undefined ? `${data.opacity}%` : "-"}</span>
               </div>
             </div>
           </div>

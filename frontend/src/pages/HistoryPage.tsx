@@ -1,18 +1,64 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import Sidebar from "../components/Sidebar";
 
+interface HistoryItem {
+  _id: string;
+  imageUrl: string;
+  prompt: string;
+  platform: string;
+  style: string;
+  createdAt: string;
+  productName?: string;
+  aiModel?: string;
+  opacity?: number;
+  targetAudience?: string;
+  ctaText?: string;
+  ratio?: string;
+  lighting?: string;
+  color?: string;
+}
+
+
+
 export default function HistoryPage() {
-  const campaigns = [
-    { title: "Eco-Friendly Coffee Cup", platform: "Instagram", tone: "Professional", gradient: "from-blue-400 to-purple-500", days: "2 days ago" },
-    { title: "Gym Membership Promo", platform: "Facebook", tone: "Urgent", gradient: "from-green-400 to-blue-500", days: "5 days ago" },
-    { title: "Summer Collection 2024", platform: "LinkedIn", tone: "Witty", gradient: "from-pink-400 to-red-500", days: "1 week ago" },
-    { title: "Restaurant Grand Opening", platform: "Instagram", tone: "Inspirational", gradient: "from-yellow-400 to-orange-500", days: "2 weeks ago" },
-    { title: "Smart Home Devices", platform: "Twitter", tone: "Professional", gradient: "from-indigo-400 to-purple-500", days: "3 weeks ago" },
-    { title: "Tropical Beach Getaway", platform: "Facebook", tone: "Inspirational", gradient: "from-teal-400 to-green-500", days: "1 month ago" },
-  ];
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      const token = userInfo.token;
+
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      const { data } = await axios.get("http://localhost:5000/api/images/history", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setHistory(data);
+    } catch (error) {
+      console.error("Failed to fetch history:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  };
 
   return (
-    <div className="flex min-h-screen gradient-bg-blue-3">
+    <div className="flex min-h-screen gradient-bg-blue-3 text-white">
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">
@@ -43,57 +89,105 @@ export default function HistoryPage() {
               </div>
               <div className="relative">
                 <select className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer hover:bg-white/10 transition-colors">
-                  <option className="bg-[#0f172a]">All Tones</option>
-                  <option className="bg-[#0f172a]">Professional</option>
-                  <option className="bg-[#0f172a]">Witty</option>
-                  <option className="bg-[#0f172a]">Urgent</option>
+                  <option className="bg-[#0f172a]">All Styles</option>
+                  <option className="bg-[#0f172a]">Minimalist</option>
+                  <option className="bg-[#0f172a]">Cyberpunk</option>
                 </select>
                 <i className="fas fa-chevron-down absolute right-4 top-4 text-gray-400 pointer-events-none"></i>
               </div>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {campaigns.map((campaign, index) => (
-              <div key={index} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-xl overflow-hidden group hover:border-blue-500/30 transition-all duration-300 hover:transform hover:-translate-y-1">
-                <div className={`bg-gradient-to-br ${campaign.gradient} h-48 flex items-center justify-center text-white text-xl font-bold relative overflow-hidden`}>
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
-                  <span className="relative z-10 drop-shadow-md">{campaign.title}</span>
-                </div>
-                <div className="p-5">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="font-bold text-white text-lg leading-tight">{campaign.title}</h3>
-                    <button className="text-gray-400 hover:text-white transition-colors">
-                      <i className="fas fa-ellipsis-v"></i>
-                    </button>
+          {loading ? (
+            <div className="text-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-gray-400">Loading your creative history...</p>
+            </div>
+          ) : history.length === 0 ? (
+            <div className="text-center py-20 bg-white/5 rounded-2xl border border-white/10">
+              <i className="fas fa-image text-4xl text-gray-600 mb-4"></i>
+              <p className="text-gray-400 text-lg">No images generated yet.</p>
+              <button
+                onClick={() => navigate("/create")}
+                className="mt-4 px-6 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-500 transition-colors"
+              >
+                Create Your First Ad
+              </button>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {history.map((item) => (
+                <div key={item._id} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-xl overflow-hidden group hover:border-blue-500/30 transition-all duration-300 hover:transform hover:-translate-y-1">
+                  <div className="h-48 overflow-hidden relative">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.prompt}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   </div>
 
-                  <div className="flex items-center space-x-2 mb-6">
-                    <span className="px-2.5 py-1 bg-white/10 border border-white/10 text-gray-300 text-xs rounded-full flex items-center gap-1.5">
-                      <i className={`fab fa-${campaign.platform.toLowerCase()} text-[10px]`}></i>
-                      {campaign.platform}
-                    </span>
-                    <span className="px-2.5 py-1 bg-white/10 border border-white/10 text-gray-300 text-xs rounded-full">
-                      {campaign.tone}
-                    </span>
-                    <span className="text-xs text-gray-500 ml-auto">{campaign.days}</span>
-                  </div>
+                  <div className="p-5">
+                    {item.productName && (
+                      <span className="block text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">
+                        {item.productName}
+                      </span>
+                    )}
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-bold text-white text-md leading-tight line-clamp-1" title={item.prompt}>
+                        {item.prompt}
+                      </h3>
+                      <button className="text-gray-400 hover:text-white transition-colors">
+                        <i className="fas fa-ellipsis-v"></i>
+                      </button>
+                    </div>
 
-                  <div className="flex gap-3">
-                    <Link to="/editor" className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-semibold text-center transition-all shadow-lg shadow-blue-500/20">
-                      Edit
-                    </Link>
-                    <button className="px-3 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-colors">
-                      <i className="fas fa-sync-alt"></i>
-                    </button>
-                    <button className="px-3 py-2.5 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 rounded-xl text-gray-400 hover:text-red-400 transition-colors">
-                      <i className="fas fa-trash"></i>
-                    </button>
+                    <div className="flex items-center space-x-2 mb-4">
+                      <span className="px-2.5 py-1 bg-white/10 border border-white/10 text-gray-300 text-xs rounded-full flex items-center gap-1.5">
+                        <i className="fas fa-layer-group text-[10px]"></i>
+                        {item.platform || "General"}
+                      </span>
+                      <span className="px-2.5 py-1 bg-white/10 border border-white/10 text-gray-300 text-xs rounded-full">
+                        {item.style}
+                      </span>
+                      <span className="text-xs text-gray-500 ml-auto">{formatDate(item.createdAt)}</span>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => navigate("/editor", {
+                          state: {
+                            imageUrl: item.imageUrl,
+                            prompt: item.prompt,
+                            platform: item.platform,
+                            style: item.style,
+                            productName: item.productName || "",
+                            targetAudience: item.targetAudience || "",
+                            ctaText: item.ctaText || "",
+                            ratio: item.ratio,
+                            lighting: item.lighting,
+                            color: item.color,
+                            tone: item.color,
+                            opacity: item.opacity,
+                            model: item.aiModel
+                          }
+                        })}
+                        className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-semibold text-center transition-all shadow-lg shadow-blue-500/20"
+                      >
+                        Edit
+                      </button>
+                      <button className="px-3 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-colors">
+                        <i className="fas fa-download"></i>
+                      </button>
+                      <button className="px-3 py-2.5 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 rounded-xl text-gray-400 hover:text-red-400 transition-colors">
+                        <i className="fas fa-trash"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>
