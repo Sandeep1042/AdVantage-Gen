@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import axios from "axios";
 import {
   Ban, Sun, Contrast, Lightbulb, Moon, Sunrise, Lamp, SunMedium, MoonStar, CircleDot, Sunset,
   Palette, Layout, Image as ImageIcon, Check, MousePointer2, Box, Sparkles, Wand2,
@@ -227,6 +228,68 @@ const Dropdown = ({ trigger, options, selectedValue, onSelect, triggerOnHover = 
   );
 };
 
+interface EnhancedOptionsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  originalPrompt: string;
+  options: string[];
+  onSelect: (option: string) => void;
+}
+
+const EnhancedOptionsModal = ({ isOpen, onClose, originalPrompt, options, onSelect }: EnhancedOptionsModalProps) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-[#1a1f3c] border border-white/10 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+        >
+          <i className="fas fa-times text-xl"></i>
+        </button>
+
+        <div className="p-8">
+          <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+            <Wand2 className="text-blue-400" />
+            Select Enhanced Prompt
+          </h2>
+          <p className="text-gray-400 mb-8">Choose the best version for your campaign.</p>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Original */}
+            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">Original Prompt</span>
+              <p className="text-gray-300 italic">"{originalPrompt}"</p>
+            </div>
+
+            {/* Options */}
+            <div className="space-y-4">
+              {options.map((option, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => onSelect(option)}
+                  className="w-full text-left bg-gradient-to-r from-blue-900/20 to-indigo-900/20 hover:from-blue-600/20 hover:to-indigo-600/20 border border-blue-500/20 hover:border-blue-400/50 rounded-xl p-5 transition-all group"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 text-xs font-bold border border-blue-500/30">
+                      {idx + 1}
+                    </span>
+                    <span className="text-blue-400 opacity-0 group-hover:opacity-100 text-xs font-medium transition-opacity">
+                      Select <i className="fas fa-arrow-right ml-1"></i>
+                    </span>
+                  </div>
+                  <p className="text-gray-200 text-sm leading-relaxed">{option}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function CreatePage() {
   const [prompt, setPrompt] = useState("");
   const [tone, setTone] = useState("No Tone");
@@ -264,54 +327,98 @@ export default function CreatePage() {
     fileInputRef.current?.click();
   };
 
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [enhancedOptions, setEnhancedOptions] = useState<string[]>([]);
+  const [showEnhanceModal, setShowEnhanceModal] = useState(false);
+
   const handleModeChange = (mode: string) => {
     setActiveMode(mode);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleEnhancePrompt = async () => {
+    if (!prompt) return;
+    setIsEnhancing(true);
+    try {
+      const { data } = await axios.post("http://localhost:5000/api/images/enhance", { prompt });
+
+      console.log("Enhance response:", data);
+
+      if (data.enhancedPrompts && Array.isArray(data.enhancedPrompts)) {
+        setEnhancedOptions(data.enhancedPrompts);
+        setShowEnhanceModal(true);
+      } else if (data.enhancedPrompt) {
+        setPrompt(data.enhancedPrompt);
+      }
+    } catch (error) {
+      console.error("Enhance error:", error);
+      alert("Failed to enhance prompt");
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const handleOptionSelect = (option: string) => {
+    setPrompt(option);
+    setShowEnhanceModal(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setProgress(0);
+    setProgress(10); // Start progress
 
-    // Simulate progress
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        const newProgress = prev + Math.random() * 15;
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setLoading(false);
-            if (activeMode === "Ad Generator AI") {
-              navigate("/editor", {
-                state: {
-                  prompt,
-                  tone,
-                  platform,
-                  ratio,
-                  ctaText,
-                  productName,
-                  targetAudience,
-                  opacity,
-                  model
-                }
-              });
-            }
-          }, 500);
-          return 100;
-        }
-        return newProgress;
+    try {
+      // Simulate progress while waiting for API
+      const interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 90) return prev;
+          return prev + 5;
+        });
+      }, 500);
+
+      const { data } = await axios.post("http://localhost:5000/api/images/generate", {
+        prompt: `Create a ${style} image with ${lighting} lighting and ${color} tones. Product: ${productName}. Target Audience: ${targetAudience}. Description: ${prompt}`,
       });
-    }, 300);
+
+      clearInterval(interval);
+      setProgress(100);
+
+      setTimeout(() => {
+        setLoading(false);
+        if (activeMode === "Ad Generator AI") {
+          navigate("/editor", {
+            state: {
+              prompt,
+              enhancedPrompt: data.enhancedPrompt,
+              imageUrl: data.imageUrl,
+              tone,
+              platform,
+              ratio,
+              ctaText,
+              productName,
+              targetAudience,
+              opacity,
+              model
+            }
+          });
+        }
+      }, 500);
+
+    } catch (error: any) {
+      setLoading(false);
+      console.error("Image Generation Error:", error);
+      alert(error.response?.data?.error || "Failed to generate image");
+    }
   };
 
   const renderBadgeButton = (label: string, isActive: boolean, icon: React.ReactNode = null) => (
     <div className={`px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm
-                    rounded-full border transition-all duration-200
-                    flex items-center gap-2 select-none
-                    ${isActive
+                      rounded-full border transition-all duration-200
+                      flex items-center gap-2 select-none
+                      ${isActive
         ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
         : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-200'}
-                  `}>
+                    `}>
       {icon}
       <span>{label}</span>
     </div>
@@ -422,10 +529,12 @@ export default function CreatePage() {
 
                       <button
                         type="button"
-                        className="absolute bottom-4 right-4 p-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-lg transition-colors group/btn z-10"
+                        onClick={handleEnhancePrompt}
+                        disabled={isEnhancing}
+                        className={`absolute bottom-4 right-4 p-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-lg transition-colors group/btn z-10 ${isEnhancing ? "opacity-50 cursor-not-allowed" : ""}`}
                         title="Enhance Prompt"
                       >
-                        <Wand2 size={16} className="group-hover/btn:animate-pulse" />
+                        <Wand2 size={16} className={isEnhancing ? "animate-spin" : "group-hover/btn:animate-pulse"} />
                       </button>
 
                     </div>
@@ -619,6 +728,15 @@ export default function CreatePage() {
           </div>
         </div>
       )}
+
+      {/* Enhanced Options Modal */}
+      <EnhancedOptionsModal
+        isOpen={showEnhanceModal}
+        onClose={() => setShowEnhanceModal(false)}
+        originalPrompt={prompt}
+        options={enhancedOptions}
+        onSelect={handleOptionSelect}
+      />
     </div>
   );
 }

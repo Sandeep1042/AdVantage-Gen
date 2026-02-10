@@ -10,32 +10,43 @@ const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/
 const HUGGING_FACE_URL = "https://huggingface.co/black-forest-labs/FLUX.1-dev";
 
 // ---------------- Gemini Prompt Enhancement ----------------
-export const enhancePrompt = async (userPrompt: string): Promise<string> => {
+export const enhancePrompt = async (userPrompt: string): Promise<string[]> => {
   try {
     const response = await axios.post(
       `${GEMINI_API_URL}?key=${process.env.GEMINI_API_KEY}`,
       {
         contents: [{
           parts: [{
-            text: `You are an expert AI prompt engineer for advertising. Rewrite the following request into a single, 
-                    highly detailed prompt for FLUX image generation.
-                    Create a highly detailed advertising-style image that looks like a professional commercial photo shoot. 
-                    Use cinematic lighting, sharp focus, and premium product photography composition. 
-                    Emphasize brand appeal, visual storytelling, and emotional impact. 
-                    Include studio-quality lighting, realistic reflections, depth of field, and rich textures. 
-                    The scene should be styled like a modern digital advertisement, ready for social media or billboard use.
-                   
-                   User request: ${userPrompt}`
+            text: `You are an expert AI prompt engineer. Provide 3 distinct, highly detailed versions of the following ad prompt for FLUX image generation.
+            
+            1. **Cinematic & Dramatic**: High contrast, moody lighting, emotional.
+            2. **Clean & Minimalist**: Bright, studio lighting, product-focused.
+            3. **Creative & Artistic**: Unique composition, stylized, vibrant.
+
+            Return ONLY a raw JSON array of strings. Do not include markdown formatting (like \`\`\`json).
+            Example: ["Prompt 1...", "Prompt 2...", "Prompt 3..."]
+
+            User Prompt: ${userPrompt}`
           }]
         }]
       }
     );
 
-    const enhanced = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || userPrompt;
-    return enhanced.trim();
+    const textResponse = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    console.log("Raw Gemini Response:", textResponse);
+
+    // Clean up potential markdown code blocks if Gemini still adds them
+    const cleanJson = textResponse.replace(/```json/g, "").replace(/```/g, "").trim();
+
+    const enhancedOptions = JSON.parse(cleanJson);
+
+    if (Array.isArray(enhancedOptions)) {
+      return enhancedOptions;
+    }
+    return [userPrompt]; // Fallback
   } catch (err: any) {
     console.error("🔥 Gemini API Error:", err.response?.data || err.message);
-    return userPrompt;
+    return [userPrompt];
   }
 };
 

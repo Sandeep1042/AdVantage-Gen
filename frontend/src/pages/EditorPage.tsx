@@ -32,18 +32,27 @@ export default function EditorPage() {
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-sm  p-3">
-                <div className="border-2 border-dashed border-white/40 rounded-lg relative bg-white/40 min-h-[400px]">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/60 to-purple-600/60 rounded-lg overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center text-white text-2xl font-bold">
-                      Your Ad Preview
+                <div className="border-2 border-dashed border-white/40 rounded-lg relative bg-white/40 min-h-[400px] flex items-center justify-center overflow-hidden">
+                  {data.imageUrl ? (
+                    <div className="relative w-full h-full min-h-[400px]">
+                      <img src={data.imageUrl} alt="Generated Ad" className="w-full h-full object-contain rounded-lg shadow-2xl" />
+                      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-full shadow-xl font-bold text-gray-900 animate-fade-in-up">
+                        {data.ctaText} →
+                      </div>
                     </div>
-                    <div className="absolute top-4 left-4 w-20 h-20 bg-white rounded-lg shadow-lg flex items-center justify-center opacity-80">
-                      <i className="fas fa-image text-gray-400 text-2xl"></i>
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/60 to-purple-600/60 rounded-lg overflow-hidden">
+                      <div className="absolute inset-0 flex items-center justify-center text-white text-2xl font-bold">
+                        Your Ad Preview
+                      </div>
+                      <div className="absolute top-4 left-4 w-20 h-20 bg-white rounded-lg shadow-lg flex items-center justify-center opacity-80">
+                        <i className="fas fa-image text-gray-400 text-2xl"></i>
+                      </div>
+                      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-full shadow-xl font-bold text-gray-900">
+                        {data.ctaText} →
+                      </div>
                     </div>
-                    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-full shadow-xl font-bold text-gray-900">
-                      {data.ctaText} →
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 <div className="mt-3 flex space-x-3">
