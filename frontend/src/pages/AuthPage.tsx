@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import { useGoogleLogin, TokenResponse } from '@react-oauth/google';
 
 interface AuthPageProps {
     setIsAuthenticated: (value: boolean) => void;
@@ -62,12 +63,26 @@ export default function AuthPage({ setIsAuthenticated }: AuthPageProps) {
         }
     };
 
-    const handleGoogleAuth = () => {
-        // TODO: Add Google OAuth logic
-        setIsAuthenticated(true);
-        localStorage.setItem("isAuthenticated", "true");
-        navigate("/dashboard");
-    };
+    const handleGoogleAuth = useGoogleLogin({
+        onSuccess: async (tokenResponse: TokenResponse) => {
+            try {
+                const { data } = await axios.post("http://localhost:5000/api/auth/google", {
+                    token: tokenResponse.access_token,
+                });
+
+                localStorage.setItem("userInfo", JSON.stringify(data));
+                setIsAuthenticated(true);
+                navigate("/dashboard");
+            } catch (error: any) {
+                console.error("Google Login Error", error);
+                alert(error.response?.data?.message || "Google Login failed");
+            }
+        },
+        onError: (errorResponse) => {
+            console.error("Google Login Failed:", errorResponse);
+            alert("Google Login Failed. Check console for details.");
+        }
+    });
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center p-4 gradient-bg-blue-2 overflow-hidden relative">
@@ -246,7 +261,7 @@ export default function AuthPage({ setIsAuthenticated }: AuthPageProps) {
                         </div>
 
                         <button
-                            onClick={handleGoogleAuth}
+                            onClick={() => handleGoogleAuth()}
                             className="mt-6 w-full flex items-center justify-center px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all font-medium text-gray-700 group"
                         >
                             <svg className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">

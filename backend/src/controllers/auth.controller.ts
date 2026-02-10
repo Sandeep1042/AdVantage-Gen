@@ -65,3 +65,63 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ message: "Server error", error: (error as Error).message });
     }
 };
+
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export const googleLogin = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { token } = req.body;
+
+        // Ensure token exists
+        if (!token) {
+            res.status(400).json({ message: "Google token is required" });
+            return;
+        }
+
+        // Verify Google Token (Access Token approach requires fetching user info, ID Token can be verified locally)
+        // Since we are using @react-oauth/google's useGoogleLogin which gives an access token, we verify by fetching user info.
+        // OR if using the GoogleLogin component (credential response), we verify ID token.
+        // Let's support the access_token approach as planned.
+
+        const response = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`);
+        if (!response.ok) {
+            res.status(401).json({ message: "Invalid Google Token" });
+            return;
+        }
+
+        const data = await response.json();
+        const { name, email, picture } = data;
+
+        if (!email) {
+            res.status(400).json({ message: "Google account does not have an email" });
+            return;
+        }
+
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            // content...
+            user = await User.create({
+                name,
+                email,
+                password: "", // No password for Google users
+                profilePicture: picture,
+            });
+        }
+
+        res.json({
+            _id: user.id,
+            name: user.name,
+            email: user.email,
+            plan: user.plan,
+            profilePicture: user.profilePicture,
+            token: generateToken(user.id),
+        });
+
+    } catch (error) {
+        console.error("Google Login Error:", error);
+        res.status(500).json({ message: "Google Login Failed", error: (error as Error).message });
+    }
+};
